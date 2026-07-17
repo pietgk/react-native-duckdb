@@ -15,6 +15,13 @@ Pod::Spec.new do |s|
   # Build DuckDB from source at pod-install time.
   # Creates DuckDB.xcframework with all configured extensions statically linked.
   # Scripts and duckdb submodule live at the repo root (one level above package/).
+  # Pass the app's Podfile directory so the build script can find the app's
+  # extension config regardless of where this package physically lives -
+  # node_modules symlinks resolve to the real checkout, so the script's own
+  # relative probes can't be trusted (see build-duckdb-ios.sh).
+  # Passed through ENV because Podfile.lock hashes the evaluated spec: an
+  # absolute path in prepare_command would change the checksum per machine.
+  ENV["RNDUCKDB_APP_IOS_DIR"] = (Pod::Config.instance.installation_root.to_s rescue "")
   s.prepare_command = <<-CMD
     bash ../scripts/build-duckdb-ios.sh #{min_ios_version_supported}
   CMD
