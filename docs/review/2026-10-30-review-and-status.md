@@ -305,8 +305,8 @@ Verified on the final code:
 | Check | Result |
 |---|---|
 | Typecheck, ESLint, Jest (28 tests), actionlint, shellcheck | Pass |
-| iOS simulator, debug, arm64 | 156 passed, 0 failed, 5 of 5 runs |
-| Android emulator API 36, debug, arm64 | 156 passed, 0 failed, 20 of 20 runs |
+| iOS simulator, debug, arm64 | 157 passed, 0 failed, 10 of 10 runs |
+| Android emulator API 36, debug, arm64 | 157 passed, 0 failed, 10 of 10 runs |
 | Android emulator API 36, release, arm64, no Metro | 164 of 164 passed, 5 of 5 runs, before the last two fixes. Not repeated |
 | Android x86_64 on the CI emulator | First run: 154 passed, 1 failed, which found the `start()` bug below |
 | Maestro flows on iOS | 4 of 4 pass |
@@ -328,6 +328,7 @@ The harness was checked for false passes. A deliberate failing test exits 1 on b
 | `RNDuckDBInitProvider` was never registered: AGP 7.3+ reads the empty `AndroidManifestNew.xml` | Fixed. Paths were only set by a JNI_OnLoad fallback that uses a hidden API, so the failure reported in that fork did not reproduce here. Paths, persistence and cold start are unchanged |
 | Release builds failed without `keystore.properties`: empty passwords against `debug.keystore` | Fixed. Falls back to debug signing |
 | `await stream.start()` could resume before any chunk arrived. CI found this on its slower emulator | Fixed. If the worker finished before `start()` returned, the JS promise was created already resolved. It now settles through the JS dispatcher, behind the chunks. Reproduced locally at about attempt 100, then 20 of 20 runs clean |
+| About a dozen open connections could kill the app. CI found this as `HermesGC: OOM` with 6.7 GB reported against an 8 MB JS heap | Fixed. Every database and connection reported 256 MB, and Hermes counts that against its heap limit. Reproduced with 30 connections. Now 8 MB for a database and 64 KB for a connection |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
 
@@ -336,6 +337,5 @@ The harness was checked for false passes. A deliberate failing test exits 1 on b
 - `main` does not require CI yet. Branch protection on the fork finishes M1's exit check
 - The nightly workflow has not run: scheduled and manual runs need it on the default branch
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
-- `getExternalMemorySize` reports 256 MB for every child connection, though they share one database. This drives extra garbage collection
 - An explicit extension list without `core_functions` silently drops `sum()` and similar functions. A fork always links it. Worth adopting in M3
 - A physical device has not been run
