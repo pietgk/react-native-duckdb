@@ -338,19 +338,19 @@ TestRegistry.registerTest('Connection Management', 'close() throws with open con
 
 TestRegistry.registerTest('Connection Management', 'close({ force: true }) succeeds despite open connections', async () => {
   const db = HybridDuckDB.open(':memory:', {})
-  db.connect()
-  db.connect()
+  // Held here because a garbage collected connection removes itself from the count
+  const connections = [db.connect(), db.connect()]
   db.close({ force: true })
   console.debug(`after force close isOpen: ${db.isOpen}`)
   if (db.isOpen) throw new Error('Expected isOpen=false after force close')
+  if (connections.some((c) => c.isOpen)) throw new Error('Expected every connection to be closed')
 })
 
 TestRegistry.registerTest('Connection Management', 'closeConnections() kills all connections', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    db.connect()
-    db.connect()
-    db.connect()
+    // Held here because a garbage collected connection removes itself from the count
+    const connections = [db.connect(), db.connect(), db.connect()]
     const before = db.connections()
     console.debug(`connections before closeAll: ${before.count}`)
     if (before.count !== 3) throw new Error(`Expected 3 connections, got ${before.count}`)
@@ -358,6 +358,7 @@ TestRegistry.registerTest('Connection Management', 'closeConnections() kills all
     const after = db.connections()
     console.debug(`connections after closeAll: ${after.count}`)
     if (after.count !== 0) throw new Error(`Expected 0 connections after closeAll, got ${after.count}`)
+    if (connections.some((c) => c.isOpen)) throw new Error('Expected every connection to be closed')
   } finally {
     db.close()
   }
