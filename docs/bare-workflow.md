@@ -4,15 +4,17 @@ This guide covers setup for bare React Native projects (no Expo managed workflow
 
 ## Installation
 
+Install the tarball attached to a [GitHub Release](https://github.com/pietgk/react-native-duckdb/releases). This needs no account or token. Change the version in both places when you upgrade.
+
 ```bash
 # npm
-npm install @pietgk/react-native-duckdb react-native-nitro-modules
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
 
 # yarn
-yarn add @pietgk/react-native-duckdb react-native-nitro-modules
+yarn add https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
 
 # bun
-bun add @pietgk/react-native-duckdb react-native-nitro-modules
+bun add https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
 ```
 
 Then install iOS pods:
@@ -20,6 +22,23 @@ Then install iOS pods:
 ```bash
 cd ios && pod install
 ```
+
+### Installing from GitHub Packages
+
+GitHub Packages gives you version ranges and `npm update`. It needs a personal access token (classic) even for this public package. Create one with the `read:packages` scope, export it as `GITHUB_PACKAGES_TOKEN`, and add this `.npmrc` next to your `package.json`:
+
+```ini
+@pietgk:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Then install by name:
+
+```bash
+npm install @pietgk/react-native-duckdb react-native-nitro-modules
+```
+
+CI and EAS builds need the same token as a secret.
 
 ## Configure extensions
 

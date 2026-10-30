@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@pietgk/react-native-duckdb"><img src="https://img.shields.io/npm/v/@pietgk/react-native-duckdb.svg" alt="npm version" /></a>
+  <a href="https://github.com/pietgk/react-native-duckdb/releases"><img src="https://img.shields.io/github/v/release/pietgk/react-native-duckdb.svg" alt="Latest release" /></a>
   <a href="https://github.com/pietgk/react-native-duckdb/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg" alt="Platform" />
   <img src="https://img.shields.io/badge/DuckDB-v1.4.5-FFF100.svg" alt="DuckDB Version" />
@@ -48,11 +48,15 @@ Download DuckDB Explorer — a free companion app to try everything before writi
 
 ## Installation
 
+Install the tarball attached to a [GitHub Release](https://github.com/pietgk/react-native-duckdb/releases). This needs no account or token:
+
 ```bash
-npm install @pietgk/react-native-duckdb react-native-nitro-modules
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
 ```
 
-For iOS, run `pod install` after installation.
+Or install from GitHub Packages, which gives you version ranges and `npm update` but needs a token even though the package is public. See [Installing from GitHub Packages](docs/bare-workflow.md#installing-from-github-packages).
+
+This package is not on npmjs.com. For iOS, run `pod install` after installation.
 
 ## Quick Start
 

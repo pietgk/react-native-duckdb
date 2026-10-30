@@ -243,8 +243,8 @@ npx expo prebuild --clean
 The plugin resolves from the app's `node_modules`. Ensure `react-native-duckdb` is in your app's direct dependencies (not just hoisted to the workspace root):
 
 ```bash
-# In your app directory
-npm install @pietgk/react-native-duckdb
+# In your app directory. Use the current release from the installation guide
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz
 ```
 
 ### Plugin not found / ERR_PACKAGE_PATH_NOT_EXPORTED

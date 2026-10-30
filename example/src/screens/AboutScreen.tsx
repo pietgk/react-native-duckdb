@@ -49,7 +49,7 @@ const LOGO_SVG = `<svg width="230" height="205" viewBox="0 0 230 205" fill="none
 </svg>`
 
 const REPO_URL = 'https://github.com/pietgk/react-native-duckdb'
-const NPM_URL = 'https://www.npmjs.com/package/react-native-duckdb'
+const RELEASES_URL = 'https://github.com/pietgk/react-native-duckdb/releases'
 const ISSUES_URL = 'https://github.com/pietgk/react-native-duckdb/issues'
 
 const EXTENSIONS = [
@@ -60,7 +60,7 @@ const EXTENSIONS = [
 
 const LINKS = [
   { label: 'GitHub Repository', icon: 'github', url: REPO_URL },
-  { label: 'npm Package', icon: 'npm', url: NPM_URL },
+  { label: 'Releases', icon: 'tag-outline', url: RELEASES_URL },
   { label: 'Report an Issue', icon: 'bug-outline', url: ISSUES_URL },
   { label: 'DuckDB Documentation', icon: 'book-open-outline', url: 'https://duckdb.org/docs/' },
 ]

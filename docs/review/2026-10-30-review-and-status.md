@@ -291,14 +291,14 @@ Upstream PRs:
 
 ## 10. Progress
 
-M0 to M2 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1). M3 is on branch `m3-packaging`. Nothing has been published to npm.
+M0 to M2 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1). M3 is on branch `m3-packaging`. No release has been published.
 
 | Milestone | State | Result |
 |---|---|---|
 | M0 Stabilise | Done | Fixes committed, LICENSE added, PR #1 and PR #3 applied with the agreed changes, DuckDB 1.4.5. First Android run passed |
 | M1 Safety net | CI runs on GitHub, branch protection not set | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. A failing check shows on the PR but does not block merging until `main` requires it |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
-| M3 Packaging | Exit check met | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. Not published |
+| M3 Packaging | Exit check met | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. No release made yet |
 | M4 onward | Not started | |
 
 Verified on the final code:
@@ -315,6 +315,17 @@ Verified on the final code:
 | Extension change recipe | Followed on both platforms. A plain `pod install` misses the change, the documented steps rebuild, and a repeat with no change skips in 12 seconds |
 
 The harness was checked for false passes. A deliberate failing test exits 1 on both platforms, and the two original bugs (stray `)}` and `INSTALL httpfs`) were reintroduced and caught. The second showed a blind spot, now closed: an error card can be cleared by the next query, so flows check when a screen opens.
+
+### Distribution decision
+
+The package is not published to npmjs.com, so there is no npm package to maintain. A `v*` tag publishes one tarball to two places on GitHub:
+
+| Path | Install | Tradeoff |
+|---|---|---|
+| GitHub Release asset | URL, no token | No version ranges or `npm update` |
+| GitHub Packages | By name, with a `read:packages` token | GitHub requires a token even for public packages, so every consumer and EAS build needs one |
+
+The Release asset is the default in the docs because it needs no setup. npm provenance is replaced by a GitHub attestation on the tarball. No release has been made yet, so neither path has been exercised end to end.
 
 ### Corrections to the review
 
