@@ -30,5 +30,16 @@ target 'RNDuckDBExample' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # fmt 11.0.2 (pinned by react-native 0.82) fails its consteval format-string
+    # check under Apple clang 21. Building it as C++17 turns consteval off.
+    # Defining FMT_USE_CONSTEVAL doesn't work: fmt/base.h overwrites it.
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt'
+
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
   end
 end
