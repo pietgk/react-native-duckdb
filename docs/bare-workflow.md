@@ -136,6 +136,26 @@ The build downloads the DuckDB source with git, so it needs network access and g
 bash node_modules/@pietgk/react-native-duckdb/scripts/fetch-duckdb.sh
 ```
 
+### iOS build fails in `fmt` on Xcode 26
+
+React Native 0.82 pins fmt 11.0.2, which does not compile on Xcode 26. Build it as C++17 in your `Podfile`, after `react_native_post_install`:
+
+```ruby
+post_install do |installer|
+  react_native_post_install(
+    # ...
+  )
+
+  installer.pods_project.targets.each do |target|
+    next unless target.name == 'fmt'
+
+    target.build_configurations.each do |config|
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+    end
+  end
+end
+```
+
 ### "Unknown extension" build error
 
 Check for typos in your `package.json` extension list. Run `configure-extensions.js --help` to see valid names.

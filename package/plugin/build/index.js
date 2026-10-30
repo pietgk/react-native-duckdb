@@ -8,5 +8,7 @@ const withDuckDB = (config, props = {}) => {
     config = (0, withIos_1.withIosExtensions)(config, props);
     return config;
 };
+// package.json sits outside rootDir, so it cannot be imported here.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');
 exports.default = (0, config_plugins_1.createRunOncePlugin)(withDuckDB, pkg.name, pkg.version);

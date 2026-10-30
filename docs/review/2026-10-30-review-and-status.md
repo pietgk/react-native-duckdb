@@ -291,14 +291,15 @@ Upstream PRs:
 
 ## 10. Progress
 
-Work is on branch `m0-stabilise`, in [PR #1 on the fork](https://github.com/pietgk/react-native-duckdb/pull/1).
+M0 to M2 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1). M3 is on branch `m3-packaging`. Nothing has been published to npm.
 
 | Milestone | State | Result |
 |---|---|---|
 | M0 Stabilise | Done | Fixes committed, LICENSE added, PR #1 and PR #3 applied with the agreed changes, DuckDB 1.4.5. First Android run passed |
 | M1 Safety net | CI runs on GitHub, branch protection not set | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. A failing check shows on the PR but does not block merging until `main` requires it |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
-| M3 onward | Not started | |
+| M3 Packaging | Exit check met | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. Not published |
+| M4 onward | Not started | |
 
 Verified on the final code:
 
@@ -309,7 +310,9 @@ Verified on the final code:
 | Android emulator API 36, debug, arm64 | 157 passed, 0 failed, 10 of 10 runs |
 | Android emulator API 36, release, arm64, no Metro | 164 of 164 passed, 5 of 5 runs, before the last two fixes. Not repeated |
 | Android x86_64 on the CI emulator | First run: 154 passed, 1 failed, which found the `start()` bug below |
-| Maestro flows on iOS | 4 of 4 pass |
+| Maestro flows on iOS | 4 of 4 pass, last run before M2 |
+| Packed tarball in a new app, iOS and Android | Smoke test passes on both |
+| Extension change recipe | Followed on both platforms. A plain `pod install` misses the change, the documented steps rebuild, and a repeat with no change skips in 12 seconds |
 
 The harness was checked for false passes. A deliberate failing test exits 1 on both platforms, and the two original bugs (stray `)}` and `INSTALL httpfs`) were reintroduced and caught. The second showed a blind spot, now closed: an error card can be cleared by the next query, so flows check when a screen opens.
 
@@ -320,6 +323,8 @@ The harness was checked for false passes. A deliberate failing test exits 1 on b
 - The build depended on a bun version. The pinned bun 1.3.1 defaults to the isolated linker, which removes paths the native builds use. `bunfig.toml` now requires the hoisted linker.
 - The 1.4.5 bump needed a new `httpfs` pin. A Jest test now compares all pins with DuckDB's own config.
 
+- Android results before the `-UDEBUG` fix were overstated. 11 FTS tests skipped silently and counted as passed, so "149 passed" on Android did not mean 149 tests ran.
+
 ### Found since the review
 
 | Finding | Outcome |
@@ -329,13 +334,16 @@ The harness was checked for false passes. A deliberate failing test exits 1 on b
 | Release builds failed without `keystore.properties`: empty passwords against `debug.keystore` | Fixed. Falls back to debug signing |
 | `await stream.start()` could resume before any chunk arrived. CI found this on its slower emulator | Fixed. If the worker finished before `start()` returned, the JS promise was created already resolved. It now settles through the JS dispatcher, behind the chunks. Reproduced locally at about attempt 100, then 20 of 20 runs clean |
 | About a dozen open connections could kill the app. CI found this as `HermesGC: OOM` with 6.7 GB reported against an 8 MB JS heap | Fixed. Every database and connection reported 256 MB, and Hermes counts that against its heap limit. Reproduced with 30 connections. Now 8 MB for a database and 64 KB for a connection |
+| The "Android rowid bug" in the docs was our own build, not DuckDB. `Information loss on integer cast` was the check `-DDEBUG` enabled | Workaround removed: 11 skipping tests, the "FTS Unavailable on Android" screen and the doc warnings. A failure now fails |
+| An explicit extension list without `core_functions` silently dropped `sum()` and similar | Fixed. It is always linked |
+| RN 0.82 on Xcode 26 needs the `fmt` workaround in every consumer's Podfile, after `react_native_post_install` | Documented in `docs/bare-workflow.md`. Goes away with M4 |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
 
 ### Open
 
 - `main` does not require CI yet. Branch protection on the fork finishes M1's exit check
-- The nightly workflow has not run: scheduled and manual runs need it on the default branch
+- The nightly workflow has not run yet. It needs to be on the default branch, so its first run follows the M3 merge
+- The Android package install test is manual. Nightly covers iOS only
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
-- An explicit extension list without `core_functions` silently drops `sum()` and similar functions. A fork always links it. Worth adopting in M3
 - A physical device has not been run
