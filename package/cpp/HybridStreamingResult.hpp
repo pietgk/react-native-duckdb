@@ -4,6 +4,7 @@
 #include "HybridQueryResult.hpp"
 #include "types.hpp"
 #include "duckdb_includes.hpp"
+#include <jsi/jsi.h>
 #include <memory>
 #include <vector>
 #include <string>
@@ -22,6 +23,8 @@ public:
     close();
   }
 
+  void loadHybridMethods() override;
+
   // Properties
   bool getIsDone() override;
   double getColumnCount() override;
@@ -38,6 +41,8 @@ public:
 
 private:
   std::shared_ptr<HybridQueryResultSpec> fetchNextChunk();
+  jsi::Value startRaw(jsi::Runtime& rt, const jsi::Value& thisVal,
+                      const jsi::Value* args, size_t count);
 
   std::unique_ptr<duckdb::QueryResult> _stream;
   std::unique_ptr<duckdb::Connection> _ownedConnection;

@@ -226,6 +226,25 @@ TestRegistry.registerTest(CATEGORY, 'A database closed with a stream open keeps 
   stream.close()
 })
 
+// The stream can finish on its worker thread before start() returns to JS, so
+// this needs many attempts to hit the window where it resolves too early.
+TestRegistry.registerTest(CATEGORY, 'start resolves after every chunk is delivered', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    for (let i = 0; i < 300; i++) {
+      const stream = await db.stream('SELECT 1 AS one')
+      let rows = 0
+      stream.onChunk((chunk) => {
+        rows += chunk.toRows().length
+      })
+      await stream.start()
+      if (rows !== 1) throw new Error(`Attempt ${i}: start resolved with ${rows} rows delivered`)
+    }
+  } finally {
+    db.close()
+  }
+})
+
 TestRegistry.registerTest(CATEGORY, 'ASOF join returns the latest match', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
