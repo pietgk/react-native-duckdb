@@ -1,10 +1,13 @@
 import { TestRegistry } from '../testing/TestRegistry'
 import { HybridDuckDB } from 'react-native-duckdb'
 
+// Progress is polled between execution tasks, so these tables must be large
+// enough that the join runs many tasks even on a fast device.
+
 TestRegistry.registerTest('Progress Callbacks', 'Per-query onProgress callback fires during long query', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    db.executeSync('CREATE TABLE prog_test AS SELECT range a, mod(range,10) b FROM range(100000)')
+    db.executeSync('CREATE TABLE prog_test AS SELECT range a, mod(range,10) b FROM range(2000000)')
     const percentages: number[] = []
     await db.execute(
       'SELECT count(*) FROM prog_test t1 INNER JOIN prog_test t2 ON (t1.a = t2.a)',
@@ -24,7 +27,7 @@ TestRegistry.registerTest('Progress Callbacks', 'Per-query onProgress callback f
 TestRegistry.registerTest('Progress Callbacks', 'Per-connection setProgressCallback fires for all queries', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    db.executeSync('CREATE TABLE prog2 AS SELECT range a FROM range(100000)')
+    db.executeSync('CREATE TABLE prog2 AS SELECT range a FROM range(2000000)')
     const allPcts: number[] = []
     db.setProgressCallback((pct) => allPcts.push(pct))
     await db.execute('SELECT count(*) FROM prog2 t1 INNER JOIN prog2 t2 ON (t1.a = t2.a)')
@@ -43,7 +46,7 @@ TestRegistry.registerTest('Progress Callbacks', 'Per-connection setProgressCallb
 TestRegistry.registerTest('Progress Callbacks', 'Per-query overrides per-connection callback', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    db.executeSync('CREATE TABLE prog3 AS SELECT range a FROM range(100000)')
+    db.executeSync('CREATE TABLE prog3 AS SELECT range a FROM range(2000000)')
     const connPcts: number[] = []
     const queryPcts: number[] = []
     db.setProgressCallback((pct) => connPcts.push(pct))
@@ -64,7 +67,7 @@ TestRegistry.registerTest('Progress Callbacks', 'Per-query overrides per-connect
 TestRegistry.registerTest('Progress Callbacks', 'removeProgressCallback stops callbacks', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    db.executeSync('CREATE TABLE prog4 AS SELECT range a FROM range(100000)')
+    db.executeSync('CREATE TABLE prog4 AS SELECT range a FROM range(2000000)')
     const pcts: number[] = []
     db.setProgressCallback((pct) => pcts.push(pct))
     await db.execute('SELECT count(*) FROM prog4 t1 INNER JOIN prog4 t2 ON (t1.a = t2.a)')
