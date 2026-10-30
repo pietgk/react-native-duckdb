@@ -73,7 +73,7 @@ export function RemoteFilesScreen() {
       try {
         const db = HybridDuckDB.open(':memory:', {})
         dbRef.current = db
-        await db.execute('INSTALL httpfs; LOAD httpfs;')
+        await db.execute('LOAD httpfs')
         if (!cancelled) setIsExtLoading(false)
       } catch (e: any) {
         if (!cancelled) {
@@ -309,7 +309,6 @@ export function RemoteFilesScreen() {
             </View>
           </View>
         </View>
-        )}
         <TouchableOpacity
           style={[styles.runButton, { backgroundColor: ACCENT, opacity: isLoading || !query.trim() ? 0.6 : 1 }]}
           onPress={runQuery}
