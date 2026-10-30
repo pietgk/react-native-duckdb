@@ -10,10 +10,10 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 150
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - uses: oven-sh/setup-bun@v2
@@ -38,7 +38,7 @@ jobs:
       - name: Run all tests, including network tests
         run: scripts/run-device-tests.sh ios network=1
         env:
-          MIN_PASSED: 164
+          MIN_PASSED: 165
       - name: Install Maestro
         run: |
           curl -fsSL https://get.maestro.mobile.dev | bash
@@ -48,7 +48,7 @@ jobs:
         run: nohup npx react-native start > metro.log 2>&1 &
       - name: Run Maestro flows
         run: maestro test --test-output-dir maestro-output example/.maestro
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: maestro-ios

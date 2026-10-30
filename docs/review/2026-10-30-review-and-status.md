@@ -291,12 +291,12 @@ Upstream PRs:
 
 ## 10. Progress
 
-Work is on branch `m0-stabilise`. Nothing has been pushed.
+Work is on branch `m0-stabilise`, in [PR #1 on the fork](https://github.com/pietgk/react-native-duckdb/pull/1).
 
 | Milestone | State | Result |
 |---|---|---|
 | M0 Stabilise | Done | Fixes committed, LICENSE added, PR #1 and PR #3 applied with the agreed changes, DuckDB 1.4.5. First Android run passed |
-| M1 Safety net | Done locally, exit check not met | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. The workflows have only been linted, so a PR is not blocked until they run on GitHub |
+| M1 Safety net | CI runs on GitHub, branch protection not set | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. A failing check shows on the PR but does not block merging until `main` requires it |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
 | M3 onward | Not started | |
 
@@ -305,10 +305,10 @@ Verified on the final code:
 | Check | Result |
 |---|---|
 | Typecheck, ESLint, Jest (28 tests), actionlint, shellcheck | Pass |
-| iOS simulator, debug, arm64 | 155 passed, 0 failed, 5 of 5 runs |
-| Android emulator API 36, debug, arm64 | 155 passed, 0 failed, 20 of 20 runs. 164 with network tests |
-| Android emulator API 36, release, arm64, no Metro | 164 passed, 0 failed, 5 of 5 runs |
-| Android debug, x86_64 | Builds. Not run: no x86_64 emulator on this Mac |
+| iOS simulator, debug, arm64 | 156 passed, 0 failed, 5 of 5 runs |
+| Android emulator API 36, debug, arm64 | 156 passed, 0 failed, 20 of 20 runs |
+| Android emulator API 36, release, arm64, no Metro | 164 of 164 passed, 5 of 5 runs, before the last two fixes. Not repeated |
+| Android x86_64 on the CI emulator | First run: 154 passed, 1 failed, which found the `start()` bug below |
 | Maestro flows on iOS | 4 of 4 pass |
 
 The harness was checked for false passes. A deliberate failing test exits 1 on both platforms, and the two original bugs (stray `)}` and `INSTALL httpfs`) were reintroduced and caught. The second showed a blind spot, now closed: an error card can be cleared by the next query, so flows check when a screen opens.
@@ -327,13 +327,15 @@ The harness was checked for false passes. A deliberate failing test exits 1 on b
 | A small ASOF join crashed every Android debug build with SIGABRT | Fixed with `-UDEBUG`. `-DNDEBUG` does not undo DuckDB's `-DDEBUG`, which enables checked casts, and one fails on a hash inside a destructor. Debug variants only. Adapted from mongrov/react-native-duckdb@c74170b |
 | `RNDuckDBInitProvider` was never registered: AGP 7.3+ reads the empty `AndroidManifestNew.xml` | Fixed. Paths were only set by a JNI_OnLoad fallback that uses a hidden API, so the failure reported in that fork did not reproduce here. Paths, persistence and cold start are unchanged |
 | Release builds failed without `keystore.properties`: empty passwords against `debug.keystore` | Fixed. Falls back to debug signing |
+| `await stream.start()` could resume before any chunk arrived. CI found this on its slower emulator | Fixed. If the worker finished before `start()` returned, the JS promise was created already resolved. It now settles through the JS dispatcher, behind the chunks. Reproduced locally at about attempt 100, then 20 of 20 runs clean |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
 
 ### Open
 
-- CI has never run. M1's exit check needs the branch on GitHub, and `macos-26`, the emulator job and the caches are all unproven
+- `main` does not require CI yet. Branch protection on the fork finishes M1's exit check
+- The nightly workflow has not run: scheduled and manual runs need it on the default branch
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
 - `getExternalMemorySize` reports 256 MB for every child connection, though they share one database. This drives extra garbage collection
 - An explicit extension list without `core_functions` silently drops `sum()` and similar functions. A fork always links it. Worth adopting in M3
-- Android x86_64 and a physical device have not been run
+- A physical device has not been run
