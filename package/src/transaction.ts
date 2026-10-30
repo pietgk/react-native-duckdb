@@ -125,16 +125,18 @@ export async function executeTransaction<T>(
     conn.executeSync('COMMIT')
     return result
   } catch (error) {
+    let rolledBack = true
     try {
       conn.executeSync('ROLLBACK')
     } catch {
-      // rollback failed — still rethrow original
+      // still rethrow the original error
+      rolledBack = false
     }
 
     const duckErr = DuckDBError.fromError(error)
     duckErr.transaction = {
       statementsExecuted: counter.value,
-      rolledBack: true,
+      rolledBack,
       depth: 0,
     }
     throw duckErr
