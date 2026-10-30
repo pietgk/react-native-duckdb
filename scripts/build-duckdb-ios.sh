@@ -121,10 +121,10 @@ build_arch() {
   local COMBINED="${FULL_BUILD_DIR}/libduckdb_combined.a"
   local ALL_LIBS=()
 
-  # Find all .a files produced by the build
+  # Find all .a files produced by the build, skipping the output of a previous run
   while IFS= read -r -d '' lib; do
     ALL_LIBS+=("${lib}")
-  done < <(find "${FULL_BUILD_DIR}" -name "*.a" -print0)
+  done < <(find "${FULL_BUILD_DIR}" -name "*.a" ! -name "libduckdb_combined.a" -print0)
 
   # Include vendor OpenSSL + libcurl static libs when httpfs is enabled
   if [ "$NEEDS_HTTPFS" = true ]; then
