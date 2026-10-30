@@ -24,7 +24,7 @@ const OUT_OF_TREE_EXTENSIONS = {
   },
   httpfs: {
     git_url: 'https://github.com/duckdb/duckdb-httpfs',
-    git_tag: '13f8a814d41a978c3f19eb1dc76069489652ea6f',
+    git_tag: '8f21bb4c79bd35733f1d6cb537c9f40611bc00fe',
   },
   fts: {
     git_url: 'https://github.com/duckdb/duckdb-fts',
