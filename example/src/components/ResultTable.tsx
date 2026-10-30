@@ -4,9 +4,8 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  type ListRenderItem,
 } from 'react-native'
-import { FlashList } from '@shopify/flash-list'
+import { FlashList, type ListRenderItem } from '@shopify/flash-list'
 import { useTheme } from '../theme'
 
 interface Props {
@@ -83,7 +82,6 @@ export function ResultTable({ columns, rows, rowCount, maxHeight = DEFAULT_MAX_H
             <FlashList
               data={rows}
               renderItem={renderRow}
-              estimatedItemSize={ROW_HEIGHT}
               nestedScrollEnabled
             />
           </View>
