@@ -219,7 +219,7 @@ export function StreamingDemoScreen() {
       )}
 
       {error && (
-        <View style={[styles.errorBox, { borderColor: colors.error }]}>
+        <View testID="error-card" style={[styles.errorBox, { borderColor: colors.error }]}>
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>
       )}

@@ -229,7 +229,7 @@ LIMIT ${k}`
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
+        <View testID="error-card" style={styles.errorContainer}>
           <MaterialCommunityIcons name="alert-circle" size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.text }]}>VSS Error</Text>
           <Text style={[styles.errorDesc, { color: colors.textSecondary }]}>{error}</Text>

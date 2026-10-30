@@ -171,7 +171,7 @@ ORDER BY score DESC`
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
+        <View testID="error-card" style={styles.errorContainer}>
           {isRowidBug ? (
             <>
               <MaterialCommunityIcons name="bug" size={48} color={colors.error} />

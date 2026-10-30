@@ -299,7 +299,7 @@ export function FileQueriesScreen() {
 
       {/* Error */}
       {error && (
-        <View style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
+        <View testID="error-card" style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
           <MaterialCommunityIcons name="alert-circle" size={20} color={colors.error} />
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>

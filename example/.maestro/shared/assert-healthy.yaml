@@ -1,0 +1,6 @@
+appId: com.rnduckdbexample
+---
+# Any error card or LogBox entry fails the flow that runs this.
+- assertNotVisible:
+    id: error-card
+- assertNotVisible: ".*(Uncaught|Text strings must be rendered|Render Error|TypeError:|ReferenceError:).*"

@@ -209,7 +209,7 @@ export function DatasetDetailScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Schema</Text>
         {schemaLoading && <ActivityIndicator size="small" color={brand.yellow} style={{ marginTop: 8 }} />}
         {schemaError && (
-          <View style={[styles.errorBox, { borderColor: colors.error }]}>
+          <View testID="error-card" style={[styles.errorBox, { borderColor: colors.error }]}>
             <Text style={[styles.errorText, { color: colors.error }]}>{schemaError}</Text>
             {dataset.source === 'trending' && (
               <Text style={[styles.errorHint, { color: colors.textSecondary }]}>

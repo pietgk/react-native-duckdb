@@ -282,7 +282,7 @@ JOIN inventory_db.inventory i ON s.product = i.product`
             )}
 
             {state.error && (
-              <View style={[styles.errorBox, { borderColor: colors.error }]}>
+              <View testID="error-card" style={[styles.errorBox, { borderColor: colors.error }]}>
                 <Text style={[styles.errorText, { color: colors.error }]}>{state.error}</Text>
               </View>
             )}
