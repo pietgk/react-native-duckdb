@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native'
-import { HybridDuckDB } from 'react-native-duckdb'
-import type { StreamingResult, QueryResult, Database } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
+import type { StreamingResult, QueryResult, Database } from '@pietgk/react-native-duckdb'
 import { ResultTable } from '../components/ResultTable'
 import { useTheme } from '../theme'
 

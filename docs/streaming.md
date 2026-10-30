@@ -75,7 +75,7 @@ const stream = await db.streamNamed(
 Async iterator wrapper over `StreamingResult`. Automatically closes the stream when iteration completes or breaks early.
 
 ```ts
-import { streamChunks } from 'react-native-duckdb'
+import { streamChunks } from '@pietgk/react-native-duckdb'
 
 const stream = await db.stream('SELECT * FROM large_table')
 for await (const chunk of streamChunks(stream)) {
@@ -189,7 +189,7 @@ console.log(count.toRows()[0].n)
 Convenience wrapper that creates an appender, runs a callback, and auto-closes. If the callback throws, the appender is still closed and the error is wrapped in `DuckDBError`.
 
 ```ts
-import { withAppender } from 'react-native-duckdb'
+import { withAppender } from '@pietgk/react-native-duckdb'
 
 await withAppender(db, 'users', (appender) => {
   appender.appendRows(userData)

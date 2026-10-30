@@ -18,7 +18,7 @@
    git push && git push --tags
    ```
 
-4. **Approve the publish** in the [GitHub Actions UI](https://github.com/pranshuchittora/react-native-duckdb/actions) — the workflow will pause and wait for manual approval before publishing.
+4. **Approve the publish** in the [GitHub Actions UI](https://github.com/pietgk/react-native-duckdb/actions) — the workflow will pause and wait for manual approval before publishing.
 
 5. Verify the package on [npmjs.com/package/react-native-duckdb](https://www.npmjs.com/package/react-native-duckdb).
 

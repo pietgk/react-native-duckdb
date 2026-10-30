@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 // File query tests: Parquet, CSV, JSON
 // On mobile, the cwd is '/' (read-only). We must use absolute paths for all

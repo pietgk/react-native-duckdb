@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native'
-import { HybridDuckDB, withAppender } from 'react-native-duckdb'
-import type { Database } from 'react-native-duckdb'
+import { HybridDuckDB, withAppender } from '@pietgk/react-native-duckdb'
+import type { Database } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
 
 type Phase = 'idle' | 'insert' | 'appender' | 'done'

@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB, withAppender, streamChunks } from 'react-native-duckdb'
+import { HybridDuckDB, withAppender, streamChunks } from '@pietgk/react-native-duckdb'
 
 const ROW_COUNT = 10_000
 const BATCH_SIZE = 1_000

@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
 import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'

@@ -6,13 +6,13 @@ This guide covers setup for bare React Native projects (no Expo managed workflow
 
 ```bash
 # npm
-npm install react-native-duckdb react-native-nitro-modules
+npm install @pietgk/react-native-duckdb react-native-nitro-modules
 
 # yarn
-yarn add react-native-duckdb react-native-nitro-modules
+yarn add @pietgk/react-native-duckdb react-native-nitro-modules
 
 # bun
-bun add react-native-duckdb react-native-nitro-modules
+bun add @pietgk/react-native-duckdb react-native-nitro-modules
 ```
 
 Then install iOS pods:
@@ -23,13 +23,13 @@ cd ios && pod install
 
 ## Configure extensions
 
-Extensions are configured in your app's `package.json` under the `react-native-duckdb` key:
+Extensions are configured in your app's `package.json` under the `@pietgk/react-native-duckdb` key:
 
 ```json
 {
   "name": "my-app",
   "dependencies": { ... },
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "parquet", "json"]
     }
@@ -39,13 +39,13 @@ Extensions are configured in your app's `package.json` under the `react-native-d
 
 The default is **no extensions**. You must explicitly list every extension you need. Invalid names cause a build error with a clear message.
 
-> `core_functions` is strongly recommended. Without it, common SQL functions like `sum()`, `avg()`, `list_value()`, and `uuid()` are unavailable.
+> `core_functions` is always included, even if your list leaves it out. It holds common SQL functions like `sum()` and `avg()`.
 
 ### Available extensions
 
 | Extension | Description |
 |-----------|-------------|
-| `core_functions` | Essential SQL functions -- **strongly recommended** |
+| `core_functions` | Essential SQL functions. Always included |
 | `parquet` | Apache Parquet file format |
 | `json` | JSON file format |
 | `icu` | Unicode collation and locale-aware text |
@@ -99,38 +99,21 @@ DuckDB is always compiled with `-O3 -DNDEBUG` (Release optimizations) even for d
 
 ## Changing extensions
 
-After changing the `extensions` array in `package.json`, you must do a clean rebuild:
+After changing the `extensions` array in `package.json`, rebuild the native code.
 
 ### iOS
 
+CocoaPods only runs the build step when it installs the pod, so remove `Pods` first. DuckDB rebuilds only if the extension list changed.
+
 ```bash
-# Remove cached DuckDB builds
-rm -rf node_modules/react-native-duckdb/duckdb/build-ios*
-
-# Remove the cached xcframework
-rm -rf node_modules/react-native-duckdb/package/DuckDB.xcframework
-
-# Reinstall pods (triggers rebuild)
-cd ios && pod install
+cd ios && rm -rf Pods && pod install
 ```
 
 ### Android
 
 ```bash
-# Remove CMake build cache
-rm -rf android/.cxx
-
-# Rebuild
+rm -rf node_modules/@pietgk/react-native-duckdb/android/.cxx
 npx react-native run-android
-```
-
-### Both platforms (nuclear option)
-
-```bash
-rm -rf node_modules/react-native-duckdb/duckdb/build-ios*
-rm -rf node_modules/react-native-duckdb/package/DuckDB.xcframework
-rm -rf android/.cxx
-cd ios && pod install
 ```
 
 ## Verify extensions
@@ -147,11 +130,10 @@ Extensions in your build config will show `installed = true`. Use `LOAD 'extensi
 
 ### "DuckDB source not found"
 
-The DuckDB source is a git submodule. Initialize it:
+The build downloads the DuckDB source with git, so it needs network access and git. To fetch it directly:
 
 ```bash
-cd node_modules/react-native-duckdb
-git submodule update --init
+bash node_modules/@pietgk/react-native-duckdb/scripts/fetch-duckdb.sh
 ```
 
 ### "Unknown extension" build error
@@ -160,7 +142,7 @@ Check for typos in your `package.json` extension list. Run `configure-extensions
 
 ### iOS build takes too long
 
-The first build compiles DuckDB from C++ source (~2-5 minutes depending on hardware). Builds are cached automatically. Only changing extensions triggers a recompilation.
+The first build compiles DuckDB from C++ source, which takes about 10 minutes with all extensions on a recent Mac. Builds are cached automatically. Only changing extensions triggers a recompilation.
 
 ### Android build fails with 32-bit errors
 

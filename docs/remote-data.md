@@ -8,7 +8,7 @@ Add `httpfs` to your extension list, along with the format extensions you need:
 
 ```json
 {
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "parquet", "json", "httpfs"]
     }
@@ -19,7 +19,7 @@ Add `httpfs` to your extension list, along with the format extensions you need:
 For Expo, use the plugin config in `app.json`:
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions", "parquet", "json", "httpfs"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet", "json", "httpfs"] }]
 ```
 
 No `LOAD` statement is needed -- httpfs activates automatically when a query references an `https://` URL.

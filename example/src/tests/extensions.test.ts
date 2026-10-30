@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Extensions', 'core_functions: sum, avg, list_value, uuid', async () => {
   const db = HybridDuckDB.open(':memory:', {})

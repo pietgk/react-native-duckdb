@@ -7,7 +7,7 @@ Control where DuckDB database files are stored on iOS and Android.
 When you open a database with a relative path, it resolves against the app's default documents directory:
 
 ```ts
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 // Relative path — stored in the default documents directory
 const db = HybridDuckDB.open('myapp.duckdb', {})
@@ -45,7 +45,7 @@ import {
   DATABASE_PATH,
   EXTERNAL_STORAGE_PATH,
   DEFAULT_PATH,
-} from 'react-native-duckdb'
+} from '@pietgk/react-native-duckdb'
 ```
 
 These are evaluated at module load time and hold the same values as the `HybridDuckDB` properties.
@@ -62,7 +62,7 @@ const db = HybridDuckDB.open('analytics.duckdb', {})
 ### iOS Library Directory (No iCloud Backup)
 
 ```ts
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const path = `${HybridDuckDB.libraryPath}/analytics.duckdb`
 const db = HybridDuckDB.open(path, {})
@@ -73,7 +73,7 @@ Use `libraryPath` for large databases that can be regenerated — avoids consumi
 ### Android External Storage with Fallback
 
 ```ts
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const dir = HybridDuckDB.externalStoragePath || HybridDuckDB.documentsPath
 const db = HybridDuckDB.open(`${dir}/large_dataset.duckdb`, {})

@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Lifecycle', 'Open in-memory database', async () => {
   const db = HybridDuckDB.open(':memory:', {})

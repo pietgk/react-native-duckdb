@@ -12,7 +12,7 @@ Add the plugin to your `app.json` (or `app.config.js`):
 {
   "expo": {
     "plugins": [
-      ["react-native-duckdb", { "extensions": ["core_functions", "parquet"] }]
+      ["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet"] }]
     ]
   }
 }
@@ -56,7 +56,7 @@ type DuckDBPluginProps = {
 
 | Extension | Description |
 |-----------|-------------|
-| `core_functions` | Essential SQL functions (sum, avg, list_value, uuid, etc.) -- **strongly recommended** |
+| `core_functions` | Essential SQL functions (sum, avg, list_value, uuid, etc.). Always included |
 | `parquet` | Apache Parquet file format support |
 | `json` | JSON file format support |
 | `icu` | Unicode collation and locale-aware text functions |
@@ -74,32 +74,32 @@ type DuckDBPluginProps = {
 **No extensions** (valid, but you'll lose common SQL functions):
 
 ```json
-["react-native-duckdb"]
+["@pietgk/react-native-duckdb"]
 ```
 
 **Recommended minimum:**
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions"] }]
 ```
 
 **Common setup** (analytics + file queries):
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions", "parquet", "json"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet", "json"] }]
 ```
 
 **Full setup** (analytics + files + SQLite interop + locale):
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions", "parquet", "json", "icu", "sqlite_scanner"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet", "json", "icu", "sqlite_scanner"] }]
 ```
 
 ## Extension Flow -- Android
 
 ```
 app.json
-  └─ plugins: [["react-native-duckdb", { extensions: ["core_functions", "parquet"] }]]
+  └─ plugins: [["@pietgk/react-native-duckdb", { extensions: ["core_functions", "parquet"] }]]
        │
        ▼
 Expo plugin (withAndroid.ts)
@@ -130,7 +130,7 @@ DuckDB CMake build
 
 ```
 app.json
-  └─ plugins: [["react-native-duckdb", { extensions: ["core_functions", "parquet"] }]]
+  └─ plugins: [["@pietgk/react-native-duckdb", { extensions: ["core_functions", "parquet"] }]]
        │
        ▼
 Expo plugin (withIos.ts)
@@ -163,7 +163,7 @@ Moving from bare workflow `package.json` config to Expo `app.json` config.
 {
   "expo": {
     "plugins": [
-      ["react-native-duckdb", { "extensions": ["core_functions", "parquet"] }]
+      ["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet"] }]
     ]
   }
 }
@@ -176,7 +176,7 @@ Use the same extensions you had in `package.json`.
 You can remove the `react-native-duckdb` key from your app's `package.json`:
 
 ```diff
--  "react-native-duckdb": {
+-  "@pietgk/react-native-duckdb": {
 -    "build": {
 -      "extensions": ["core_functions", "parquet"]
 -    }
@@ -244,7 +244,7 @@ The plugin resolves from the app's `node_modules`. Ensure `react-native-duckdb` 
 
 ```bash
 # In your app directory
-npm install react-native-duckdb
+npm install @pietgk/react-native-duckdb
 ```
 
 ### Plugin not found / ERR_PACKAGE_PATH_NOT_EXPORTED

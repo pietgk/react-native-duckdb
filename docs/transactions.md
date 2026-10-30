@@ -5,7 +5,7 @@
 Executes a callback within a database transaction. Automatically commits on success, rolls back on error. Uses a dedicated child connection.
 
 ```ts
-import { executeTransaction } from 'react-native-duckdb'
+import { executeTransaction } from '@pietgk/react-native-duckdb'
 
 const result = await executeTransaction(db, async (tx) => {
   tx.executeSync("INSERT INTO accounts VALUES (1, 'alice', 1000)")
@@ -60,7 +60,7 @@ function executeTransaction<T>(
 Wraps a `Database` to add a `transaction()` method directly on the database object.
 
 ```ts
-import { createWrappedDatabase, HybridDuckDB } from 'react-native-duckdb'
+import { createWrappedDatabase, HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const db = createWrappedDatabase(HybridDuckDB.open(':memory:', {}))
 
@@ -278,7 +278,7 @@ type TransactionInfo = {
 ### Error Handling Pattern
 
 ```ts
-import { DuckDBError, executeTransaction } from 'react-native-duckdb'
+import { DuckDBError, executeTransaction } from '@pietgk/react-native-duckdb'
 
 try {
   await executeTransaction(db, async (tx) => {

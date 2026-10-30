@@ -39,6 +39,8 @@ const OUT_OF_TREE_EXTENSIONS = {
 
 const ALL_VALID = [...IN_TREE_EXTENSIONS, ...Object.keys(OUT_OF_TREE_EXTENSIONS)];
 
+const { name: PACKAGE_NAME } = require('../package.json');
+
 // DuckDB's extension_config.cmake loads these by default
 const DEFAULT_EXTENSIONS = ['core_functions', 'parquet'];
 
@@ -50,7 +52,7 @@ function checkPackageJson(pkgPath) {
       ...(pkg.dependencies || {}),
       ...(pkg.devDependencies || {}),
     };
-    if (deps['react-native-duckdb']) {
+    if (deps[PACKAGE_NAME]) {
       return { path: pkgPath, pkg };
     }
   } catch (_) {
@@ -185,7 +187,7 @@ function main() {
     const consumer = findConsumerPackageJson(searchStart);
 
     if (consumer) {
-      const config = consumer.pkg['react-native-duckdb'];
+      const config = consumer.pkg[PACKAGE_NAME];
       if (config && config.build && Array.isArray(config.build.extensions)) {
         extensions = config.build.extensions;
       }

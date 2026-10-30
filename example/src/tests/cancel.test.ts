@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Query Cancellation', 'Cancel running async query', async () => {
   const db = HybridDuckDB.open(':memory:', {})

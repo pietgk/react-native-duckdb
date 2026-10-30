@@ -1,6 +1,6 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
-import type { NumericColumn } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
+import type { NumericColumn } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Columnar Access', 'Numeric column typed array', async () => {
   const db = HybridDuckDB.open(':memory:', {})

@@ -5,7 +5,7 @@
     "lib": ["ESNext"],
     "baseUrl": ".",
     "paths": {
-      "react-native-duckdb": ["../package/src"]
+      "@pietgk/react-native-duckdb": ["../package/src"]
     }
   }
 }

@@ -3,7 +3,7 @@
 // DuckDB's parser, type inference, and httpfs transport all work end-to-end.
 
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const PARQUET_BASE =
   'https://raw.githubusercontent.com/apache/parquet-testing/master/data'

@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 // Progress is polled between execution tasks, so these tables must be large
 // enough that the join runs many tasks even on a fast device.

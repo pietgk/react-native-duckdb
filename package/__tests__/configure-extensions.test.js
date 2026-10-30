@@ -3,6 +3,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const { name: PACKAGE_NAME } = require('../package.json');
+
 const SCRIPT = path.resolve(__dirname, '../scripts/configure-extensions.js');
 const DUCKDB_CONFIG = path.resolve(__dirname, '../duckdb/.github/config/extensions');
 
@@ -25,8 +27,8 @@ function writeApp(dir, config) {
   fs.writeFileSync(
     path.join(dir, 'package.json'),
     JSON.stringify({
-      dependencies: { 'react-native-duckdb': '*' },
-      'react-native-duckdb': { build: { extensions: config } },
+      dependencies: { [PACKAGE_NAME]: '*' },
+      [PACKAGE_NAME]: { build: { extensions: config } },
     })
   );
 }

@@ -3,7 +3,7 @@ import {
   HybridDuckDB,
   DuckDBError,
   createWrappedDatabase,
-} from 'react-native-duckdb'
+} from '@pietgk/react-native-duckdb'
 
 // ── Transactions ──
 
