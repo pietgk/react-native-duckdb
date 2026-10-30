@@ -17,6 +17,8 @@ Evidence labels used below:
 - **Confirmed by inspection**: checked directly in the repo, the published tarball, or a registry.
 - **Read from code**: a reading of the source. Not yet triggered at runtime.
 
+Section 10 records what has been done since this review was written. Sections 1 to 9 are the original review.
+
 ## 1. Status at 2026-10-30
 
 **What runs:** the iOS simulator. A clean `pod install` and build succeed, the in-app suite reports 149 passed and 0 failed, and all tabs and Explorer screens opened. `tsc --noEmit` passes in both `example/` and `package/`.
@@ -286,3 +288,52 @@ Upstream PRs:
 - [#1 shrink native Android lib](https://github.com/pranshuchittora/react-native-duckdb/pull/1)
 - [#2 spatial extension support](https://github.com/pranshuchittora/react-native-duckdb/pull/2)
 - [#3 iOS extension discovery](https://github.com/pranshuchittora/react-native-duckdb/pull/3)
+
+## 10. Progress
+
+Work is on branch `m0-stabilise`. Nothing has been pushed.
+
+| Milestone | State | Result |
+|---|---|---|
+| M0 Stabilise | Done | Fixes committed, LICENSE added, PR #1 and PR #3 applied with the agreed changes, DuckDB 1.4.5. First Android run passed |
+| M1 Safety net | Done locally, exit check not met | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. The workflows have only been linted, so a PR is not blocked until they run on GitHub |
+| M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
+| M3 onward | Not started | |
+
+Verified on the final code:
+
+| Check | Result |
+|---|---|
+| Typecheck, ESLint, Jest (28 tests), actionlint, shellcheck | Pass |
+| iOS simulator, debug, arm64 | 155 passed, 0 failed, 5 of 5 runs |
+| Android emulator API 36, debug, arm64 | 155 passed, 0 failed, 20 of 20 runs. 164 with network tests |
+| Android emulator API 36, release, arm64, no Metro | 164 passed, 0 failed, 5 of 5 runs |
+| Android debug, x86_64 | Builds. Not run: no x86_64 emulator on this Mac |
+| Maestro flows on iOS | 4 of 4 pass |
+
+The harness was checked for false passes. A deliberate failing test exits 1 on both platforms, and the two original bugs (stray `)}` and `INSTALL httpfs`) were reintroduced and caught. The second showed a blind spot, now closed: an error card can be cleared by the next query, so flows check when a screen opens.
+
+### Corrections to the review
+
+- `close()` during a query was labelled "Read from code; 8 UI attempts did not crash". It hung the app when tested directly.
+- PR #1 was verified by the first Android build: `libduckdb.so` is no longer packaged.
+- The build depended on a bun version. The pinned bun 1.3.1 defaults to the isolated linker, which removes paths the native builds use. `bunfig.toml` now requires the hoisted linker.
+- The 1.4.5 bump needed a new `httpfs` pin. A Jest test now compares all pins with DuckDB's own config.
+
+### Found since the review
+
+| Finding | Outcome |
+|---|---|
+| A small ASOF join crashed every Android debug build with SIGABRT | Fixed with `-UDEBUG`. `-DNDEBUG` does not undo DuckDB's `-DDEBUG`, which enables checked casts, and one fails on a hash inside a destructor. Debug variants only. Adapted from mongrov/react-native-duckdb@c74170b |
+| `RNDuckDBInitProvider` was never registered: AGP 7.3+ reads the empty `AndroidManifestNew.xml` | Fixed. Paths were only set by a JNI_OnLoad fallback that uses a hidden API, so the failure reported in that fork did not reproduce here. Paths, persistence and cold start are unchanged |
+| Release builds failed without `keystore.properties`: empty passwords against `debug.keystore` | Fixed. Falls back to debug signing |
+| Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
+| Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
+
+### Open
+
+- CI has never run. M1's exit check needs the branch on GitHub, and `macos-26`, the emulator job and the caches are all unproven
+- Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
+- `getExternalMemorySize` reports 256 MB for every child connection, though they share one database. This drives extra garbage collection
+- An explicit extension list without `core_functions` silently drops `sum()` and similar functions. A fork always links it. Worth adopting in M3
+- Android x86_64 and a physical device have not been run
