@@ -62,14 +62,10 @@ Pod::Spec.new do |s|
 
   # When httpfs extension is included, OpenSSL and libcurl are statically linked
   # into the xcframework but still need system framework dependencies at link time.
-  ext_meta = File.join(__dir__, ".duckdb-extensions.json")
-  if File.exist?(ext_meta)
-    ext_info = JSON.parse(File.read(ext_meta)) rescue {}
-    if ext_info["httpfs"]
-      s.frameworks = ["Security", "SystemConfiguration"]
-      s.libraries = ["z"]
-    end
-  end
+  # Declared unconditionally: this podspec is evaluated before prepare_command
+  # runs, so it can't know which extensions the xcframework will contain.
+  s.frameworks = ["Security", "SystemConfiguration"]
+  s.libraries = ["z"]
 
   install_modules_dependencies(s)
 end

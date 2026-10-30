@@ -175,12 +175,4 @@ PACKAGE_DIR="${REPO_DIR}/package"
 rm -rf "${PACKAGE_DIR}/DuckDB.xcframework"
 cp -R "${BUILD_DIR}/DuckDB.xcframework" "${PACKAGE_DIR}/DuckDB.xcframework"
 
-# Step 5: Write extension metadata for podspec to read
-EXT_META="${PACKAGE_DIR}/.duckdb-extensions.json"
-if [ "$NEEDS_HTTPFS" = true ]; then
-  echo '{"httpfs":true}' > "$EXT_META"
-else
-  echo '{}' > "$EXT_META"
-fi
-
 echo "=== DuckDB.xcframework created at ${PACKAGE_DIR}/DuckDB.xcframework ==="
