@@ -10,7 +10,7 @@ Add extensions to your app's `package.json`:
 
 ```json
 {
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "parquet", "json"]
     }
@@ -26,7 +26,7 @@ Add the plugin to `app.json` (or `app.config.js`):
 {
   "expo": {
     "plugins": [
-      ["react-native-duckdb", { "extensions": ["core_functions", "parquet", "json"] }]
+      ["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "parquet", "json"] }]
     ]
   }
 }
@@ -136,7 +136,7 @@ The `httpfs` extension queries files over HTTPS — Parquet, CSV, and JSON hoste
 
 ```json
 {
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "parquet", "json", "httpfs"]
     }
@@ -266,7 +266,6 @@ arabic, basque, catalan, danish, dutch, english, finnish, french, german, greek,
 - **Static snapshot** — The index does not auto-update. After INSERT/UPDATE/DELETE, drop and recreate it.
 - **No CJK tokenization** — The Snowball stemmer splits on whitespace only. Chinese, Japanese, and Korean text won't be properly tokenized.
 - **In-memory DB** — Closing an in-memory database discards the index.
-- **Android rowid bug** — FTS index creation may fail on Android with "Information loss on integer cast" due to internal `rowid` overflow. FTS works reliably on iOS. The `stem()` function works on both platforms. See [duckdb/duckdb-fts#24](https://github.com/duckdb/duckdb-fts/issues/24).
 
 ### Binary Size
 
