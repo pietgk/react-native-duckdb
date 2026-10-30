@@ -8,7 +8,7 @@ import {
   type ListRenderItem,
 } from 'react-native'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
 import { initQueryStore, getHistory, type HistoryEntry } from '../db/queryStore'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'

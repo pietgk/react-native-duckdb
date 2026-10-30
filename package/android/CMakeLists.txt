@@ -4,16 +4,24 @@ project(RNDuckDB)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
-# Path to DuckDB source (submodule at react-native-duckdb/duckdb/)
-set(DUCKDB_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../duckdb")
+# DuckDB source, downloaded by scripts/fetch-duckdb.sh
+set(DUCKDB_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../duckdb")
 
 # Run extension configuration script to generate extension_config_local.cmake.
 # APP_ROOT_DIR is passed from build.gradle (rootProject.projectDir.parentFile).
 # DUCKDB_EXTENSIONS is set from gradle.properties when Expo config plugin is used.
 find_program(NODE_EXECUTABLE node REQUIRED)
 
+execute_process(
+  COMMAND bash ${CMAKE_SOURCE_DIR}/../scripts/fetch-duckdb.sh
+  RESULT_VARIABLE FETCH_RESULT
+)
+if(NOT FETCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "react-native-duckdb: Fetching DuckDB failed (exit ${FETCH_RESULT})")
+endif()
+
 set(CONFIGURE_ARGS
-  ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/../../scripts/configure-extensions.js
+  ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/../scripts/configure-extensions.js
   --duckdb-path ${DUCKDB_SOURCE_DIR}
   --app-root ${APP_ROOT_DIR}
 )
@@ -42,6 +50,13 @@ set(EXTENSION_STATIC_BUILD OFF CACHE BOOL "" FORCE)
 set(BUILD_EXTENSIONS_ONLY OFF CACHE BOOL "" FORCE)
 set(DUCKDB_EXPLICIT_PLATFORM "android_${ANDROID_ABI}" CACHE STRING "" FORCE)
 
+# The fetched source has no .git for DuckDB to read its version from
+execute_process(
+  COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/../scripts/duckdb-version.js
+  OUTPUT_VARIABLE DUCKDB_GIT_DESCRIBE
+)
+set(OVERRIDE_GIT_DESCRIBE "${DUCKDB_GIT_DESCRIBE}" CACHE STRING "" FORCE)
+
 # Check if httpfs is in the extension config (needs OpenSSL + libcurl)
 set(EXT_CONFIG_PATH "${DUCKDB_SOURCE_DIR}/extension/extension_config_local.cmake")
 if(EXISTS "${EXT_CONFIG_PATH}")
@@ -65,9 +80,9 @@ if(EXISTS "${EXT_CONFIG_PATH}")
         set(ENV{ANDROID_NDK_ROOT} "${ANDROID_NDK_FOR_HTTPFS}")
       endif()
 
-      set(VENDOR_DIR "${CMAKE_SOURCE_DIR}/../../vendor")
+      set(VENDOR_DIR "${CMAKE_SOURCE_DIR}/../vendor")
       execute_process(
-        COMMAND bash "${CMAKE_SOURCE_DIR}/../../scripts/build-openssl-curl.sh" android "${ANDROID_ABI}"
+        COMMAND bash "${CMAKE_SOURCE_DIR}/../scripts/build-openssl-curl.sh" android "${ANDROID_ABI}"
         RESULT_VARIABLE _httpfs_deps_result
       )
       if(NOT _httpfs_deps_result EQUAL 0)

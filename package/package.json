@@ -1,5 +1,5 @@
 {
-  "name": "react-native-duckdb",
+  "name": "@pietgk/react-native-duckdb",
   "version": "1.0.0",
   "description": "The analytical database for React Native — OLAP queries, full-text search, vector similarity search, and remote data on iOS and Android with native C++ performance",
   "main": "./lib/module/index",
@@ -27,11 +27,12 @@
     "android",
     "ios",
     "cpp",
-    "vendor",
     "scripts",
+    "duckdb.json",
     "app.plugin.js",
     "plugin",
     "RNDuckDB.podspec",
+    "LICENSE",
     "!lib/typescript/example",
     "!android/build",
     "!android/.cxx",
@@ -47,6 +48,7 @@
     "build:plugin": "tsc --project plugin/tsconfig.json",
     "specs": "bun typecheck && bun nitrogen --logLevel=\"debug\"",
     "typecheck": "tsc --noEmit",
+    "pretest": "bash scripts/fetch-duckdb.sh",
     "test": "jest",
     "prepublishOnly": "bun run build"
   },
@@ -67,11 +69,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pranshuchittora/react-native-duckdb.git"
+    "url": "git+https://github.com/pietgk/react-native-duckdb.git"
   },
-  "homepage": "https://github.com/pranshuchittora/react-native-duckdb",
+  "homepage": "https://github.com/pietgk/react-native-duckdb",
   "bugs": {
-    "url": "https://github.com/pranshuchittora/react-native-duckdb/issues"
+    "url": "https://github.com/pietgk/react-native-duckdb/issues"
   },
   "author": "Pranshu Chittora",
   "license": "MIT",
@@ -79,7 +81,7 @@
     "node": ">=18"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
     "@expo/config-plugins": "^9.0.0",

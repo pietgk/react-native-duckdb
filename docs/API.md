@@ -11,7 +11,7 @@ For installation and setup, see the [README](../README.md). For guides on specif
 The `HybridDuckDB` singleton is the entry point. It provides path constants and the `open()` method for creating database instances.
 
 ```ts
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 ```
 
 ---
@@ -107,7 +107,7 @@ import {
   DATABASE_PATH,
   EXTERNAL_STORAGE_PATH,
   DEFAULT_PATH,
-} from 'react-native-duckdb'
+} from '@pietgk/react-native-duckdb'
 ```
 
 ---
@@ -987,7 +987,7 @@ Wraps a `Database` handle with a `transaction()` method for managed transaction 
 **Returns:** `WrappedDatabase`
 
 ```ts
-import { createWrappedDatabase } from 'react-native-duckdb'
+import { createWrappedDatabase } from '@pietgk/react-native-duckdb'
 
 const wrapped = createWrappedDatabase(db)
 
@@ -1014,7 +1014,7 @@ Executes a callback within a transaction. Automatically calls BEGIN, COMMIT on s
 **Returns:** `Promise<T>` — the callback's return value
 
 ```ts
-import { executeTransaction } from 'react-native-duckdb'
+import { executeTransaction } from '@pietgk/react-native-duckdb'
 
 const total = await executeTransaction(db, async (tx) => {
   tx.executeSync('UPDATE accounts SET balance = balance - 100 WHERE name = ?', ['Alice'])
@@ -1039,7 +1039,7 @@ Async iterator wrapper over `StreamingResult`. Automatically closes the stream w
 **Returns:** `AsyncIterableIterator<QueryResult>`
 
 ```ts
-import { streamChunks } from 'react-native-duckdb'
+import { streamChunks } from '@pietgk/react-native-duckdb'
 
 const stream = await db.stream('SELECT * FROM large_table')
 for await (const chunk of streamChunks(stream)) {
@@ -1072,7 +1072,7 @@ Creates an appender, runs a callback, and auto-closes. If the callback throws, t
 **Returns:** `Promise<T>` — the callback's return value
 
 ```ts
-import { withAppender } from 'react-native-duckdb'
+import { withAppender } from '@pietgk/react-native-duckdb'
 
 await withAppender(db, 'users', (appender) => {
   appender.appendRows(userData)
@@ -1105,7 +1105,7 @@ import type {
   StreamingOptions,
   AppenderOptions,
   ExecuteOptions,
-} from 'react-native-duckdb'
+} from '@pietgk/react-native-duckdb'
 ```
 
 ---
@@ -1395,7 +1395,7 @@ class DuckDBError extends Error {
 | `fromError(error)` | `static` | Converts any error to a `DuckDBError`, preserving stack and cause |
 
 ```ts
-import { DuckDBError } from 'react-native-duckdb'
+import { DuckDBError } from '@pietgk/react-native-duckdb'
 
 try {
   db.executeSync('INVALID SQL')

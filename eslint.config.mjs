@@ -7,8 +7,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
-      'duckdb/**',
-      'vendor/**',
+      'package/duckdb/**',
       'example/android/**',
       'example/ios/**',
       'package/android/**',

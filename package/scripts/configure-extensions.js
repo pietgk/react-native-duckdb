@@ -39,6 +39,8 @@ const OUT_OF_TREE_EXTENSIONS = {
 
 const ALL_VALID = [...IN_TREE_EXTENSIONS, ...Object.keys(OUT_OF_TREE_EXTENSIONS)];
 
+const { name: PACKAGE_NAME } = require('../package.json');
+
 // DuckDB's extension_config.cmake loads these by default
 const DEFAULT_EXTENSIONS = ['core_functions', 'parquet'];
 
@@ -50,7 +52,7 @@ function checkPackageJson(pkgPath) {
       ...(pkg.dependencies || {}),
       ...(pkg.devDependencies || {}),
     };
-    if (deps['react-native-duckdb']) {
+    if (deps[PACKAGE_NAME]) {
       return { path: pkgPath, pkg };
     }
   } catch (_) {
@@ -170,7 +172,7 @@ function main() {
 
   if (!fs.existsSync(path.join(duckdbPath, 'CMakeLists.txt'))) {
     console.error(`❌ react-native-duckdb: DuckDB source not found at ${duckdbPath}`);
-    console.error('   Run: git submodule update --init');
+    console.error('   Run: bash scripts/fetch-duckdb.sh');
     process.exit(1);
   }
 
@@ -185,14 +187,14 @@ function main() {
     const consumer = findConsumerPackageJson(searchStart);
 
     if (consumer) {
-      const config = consumer.pkg['react-native-duckdb'];
+      const config = consumer.pkg[PACKAGE_NAME];
       if (config && config.build && Array.isArray(config.build.extensions)) {
         extensions = config.build.extensions;
       }
       // Discovery that resolves to a workspace inside this package's own repo
       // (e.g. example/) is expected when building the bundled example, but for
       // an external app it means the app's config was NOT found.
-      const repoRoot = path.resolve(scriptDir, '..');
+      const repoRoot = path.resolve(scriptDir, '..', '..');
       const consumerPath = path.resolve(consumer.path);
       if (consumerPath.startsWith(repoRoot + path.sep)) {
         console.warn(
@@ -206,13 +208,11 @@ function main() {
     }
   }
 
-  // Warn on empty extensions
-  if (extensions.length === 0) {
-    console.warn(
-      '⚠️  react-native-duckdb: No extensions configured. Common SQL functions like ' +
-        'sum(), avg(), and list_value() will be unavailable. Add extensions in your ' +
-        'package.json under "react-native-duckdb".build.extensions'
-    );
+  // core_functions holds sum(), avg(), list_value() and date_trunc(), so ordinary
+  // SQL fails without it. An explicit list would otherwise skip it silently.
+  if (!extensions.includes('core_functions')) {
+    console.warn('⚠️  react-native-duckdb: Adding core_functions, which every build needs.');
+    extensions = ['core_functions', ...extensions];
   }
 
   // Validate extension names

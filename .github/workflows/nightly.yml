@@ -11,8 +11,6 @@ jobs:
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v7
-        with:
-          submodules: true
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -54,3 +52,20 @@ jobs:
           name: maestro-ios
           path: maestro-output
           if-no-files-found: ignore
+
+  package-install:
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.1
+      - run: bun install --frozen-lockfile
+      - name: Boot simulator
+        run: xcrun simctl bootstatus "iPhone 17" -b
+      - name: Install the packed tarball in a new app
+        run: scripts/check-package-install.sh ios

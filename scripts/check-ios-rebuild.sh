@@ -6,15 +6,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-LIB="${REPO_DIR}/duckdb/build-ios-iphonesimulator-arm64/libduckdb_combined.a"
+PACKAGE_DIR="${REPO_DIR}/package"
+LIB="${PACKAGE_DIR}/duckdb/build-ios-iphonesimulator-arm64/libduckdb_combined.a"
 
 measure() {
   echo "$(wc -c < "$LIB" | tr -d ' ') bytes, $(ar -t "$LIB" | wc -l | tr -d ' ') members"
 }
 
 BEFORE="$(measure)"
-rm -f "${REPO_DIR}/package/DuckDB.xcframework.key"
-bash "${SCRIPT_DIR}/build-duckdb-ios.sh" "$@"
+rm -f "${PACKAGE_DIR}/DuckDB.xcframework.key"
+bash "${PACKAGE_DIR}/scripts/build-duckdb-ios.sh" "$@"
 AFTER="$(measure)"
 
 echo "before: ${BEFORE}"

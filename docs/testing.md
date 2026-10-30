@@ -7,6 +7,7 @@
 | In-app suite | The native library on a real device | `scripts/run-device-tests.sh ios` | Every PR, network tests nightly |
 | Maestro flows | Screens, error cards and LogBox entries | `maestro test example/.maestro` | Nightly |
 | Rebuild check | Rebuilding over the previous iOS output | `scripts/check-ios-rebuild.sh` | Nightly |
+| Package install | The packed tarball in a new app outside the repo | `scripts/check-package-install.sh ios` | Nightly |
 
 ## In-app suite
 

@@ -3,9 +3,10 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const REPO_ROOT = path.resolve(__dirname, '../..');
-const SCRIPT = path.join(REPO_ROOT, 'scripts/configure-extensions.js');
-const SUBMODULE_CONFIG = path.join(REPO_ROOT, 'duckdb/.github/config/extensions');
+const { name: PACKAGE_NAME } = require('../package.json');
+
+const SCRIPT = path.resolve(__dirname, '../scripts/configure-extensions.js');
+const DUCKDB_CONFIG = path.resolve(__dirname, '../duckdb/.github/config/extensions');
 
 let workDir;
 let duckdbDir;
@@ -26,8 +27,8 @@ function writeApp(dir, config) {
   fs.writeFileSync(
     path.join(dir, 'package.json'),
     JSON.stringify({
-      dependencies: { 'react-native-duckdb': '*' },
-      'react-native-duckdb': { build: { extensions: config } },
+      dependencies: { [PACKAGE_NAME]: '*' },
+      [PACKAGE_NAME]: { build: { extensions: config } },
     })
   );
 }
@@ -53,8 +54,15 @@ describe('configure-extensions', () => {
   });
 
   it('skips default extensions that were not requested', () => {
-    run(['--extensions', 'json']);
-    expect(generatedConfig()).toContain('set(SKIP_EXTENSIONS "core_functions;parquet")');
+    run(['--extensions', 'core_functions,json']);
+    expect(generatedConfig()).toContain('set(SKIP_EXTENSIONS "parquet")');
+  });
+
+  it('always includes core_functions', () => {
+    const result = run(['--extensions', 'parquet']);
+    expect(result.stderr).toContain('Adding core_functions');
+    expect(generatedConfig()).toContain('duckdb_extension_load(core_functions)');
+    expect(generatedConfig()).not.toContain('SKIP_EXTENSIONS');
   });
 
   it('pins out-of-tree extensions to a commit', () => {
@@ -93,17 +101,18 @@ describe('configure-extensions', () => {
     expect(config).not.toContain('duckdb_extension_load(json)');
   });
 
-  it('warns when no extensions are configured', () => {
+  it('includes core_functions when no extensions are configured', () => {
     const result = run(['--app-root', workDir]);
-    expect(result.stderr).toContain('No extensions configured');
+    expect(result.status).toBe(0);
+    expect(generatedConfig()).toContain('duckdb_extension_load(core_functions)');
   });
 });
 
 // DuckDB's own CI records the extension commit each release builds against.
 // A DuckDB bump that misses one of these fails here rather than at build time.
 describe('out-of-tree pins', () => {
-  it.each(['sqlite_scanner', 'httpfs', 'fts', 'vss'])('%s matches the submodule', (name) => {
-    const upstream = fs.readFileSync(path.join(SUBMODULE_CONFIG, `${name}.cmake`), 'utf8');
+  it.each(['sqlite_scanner', 'httpfs', 'fts', 'vss'])('%s matches the pinned DuckDB', (name) => {
+    const upstream = fs.readFileSync(path.join(DUCKDB_CONFIG, `${name}.cmake`), 'utf8');
     const [, tag] = upstream.match(/GIT_TAG\s+([0-9a-f]{40})/);
     run(['--extensions', name]);
     expect(generatedConfig()).toContain(`GIT_TAG ${tag}`);

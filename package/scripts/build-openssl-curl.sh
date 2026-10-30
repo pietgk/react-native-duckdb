@@ -10,8 +10,8 @@ set -euo pipefail
 # Cached: skip rebuild if output exists with matching version marker.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-VENDOR_DIR="${REPO_DIR}/vendor"
+PACKAGE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+VENDOR_DIR="${PACKAGE_DIR}/vendor"
 SRC_DIR="${VENDOR_DIR}/src"
 
 OPENSSL_VERSION="3.4.1"

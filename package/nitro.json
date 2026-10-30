@@ -12,5 +12,5 @@
       "cpp": "HybridDuckDB"
     }
   },
-  "ignorePaths": ["node_modules", "example", "lib", "vendor"]
+  "ignorePaths": ["node_modules", "example", "lib", "vendor", "duckdb"]
 }

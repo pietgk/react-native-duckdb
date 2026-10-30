@@ -8,7 +8,7 @@ Add `vss` to your extension list:
 
 ```json
 {
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "vss"]
     }
@@ -19,7 +19,7 @@ Add `vss` to your extension list:
 For Expo, use the plugin config in `app.json`:
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions", "vss"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "vss"] }]
 ```
 
 Load the extension before creating indexes:

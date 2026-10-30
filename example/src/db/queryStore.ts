@@ -1,4 +1,4 @@
-import type { HybridDuckDB } from 'react-native-duckdb'
+import type { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 type DB = ReturnType<typeof HybridDuckDB.open>
 

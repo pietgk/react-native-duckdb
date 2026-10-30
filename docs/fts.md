@@ -8,7 +8,7 @@ Add `fts` to your extension list:
 
 ```json
 {
-  "react-native-duckdb": {
+  "@pietgk/react-native-duckdb": {
     "build": {
       "extensions": ["core_functions", "fts"]
     }
@@ -19,7 +19,7 @@ Add `fts` to your extension list:
 For Expo, use the plugin config in `app.json`:
 
 ```json
-["react-native-duckdb", { "extensions": ["core_functions", "fts"] }]
+["@pietgk/react-native-duckdb", { "extensions": ["core_functions", "fts"] }]
 ```
 
 Load the extension before creating indexes:
@@ -162,8 +162,6 @@ PRAGMA create_fts_index('docs', 'id', 'title', 'body', stemmer='english');
 **No CJK tokenization.** The Snowball stemmer splits on whitespace only. Chinese, Japanese, and Korean text is not properly tokenized -- individual characters are not searchable as words.
 
 **In-memory databases lose the index on close.** The FTS index is stored in DuckDB's schema. Closing an in-memory database discards it entirely.
-
-**Android rowid overflow bug.** DuckDB's FTS extension may fail on Android with `Information loss on integer cast` during index creation. The FTS indexing script uses `SELECT rowid AS docid` internally, and on Android the `rowid` for in-memory tables can produce unsigned 64-bit values that overflow signed `int64`. FTS indexing works reliably on iOS. The `stem()` function works on both platforms. See [duckdb/duckdb-fts#24](https://github.com/duckdb/duckdb-fts/issues/24).
 
 **Binary size impact.** Minimal -- FTS adds the Snowball stemmer library (~35 source files) with no external dependencies.
 

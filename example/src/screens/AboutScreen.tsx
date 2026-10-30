@@ -11,8 +11,8 @@ import {
 } from 'react-native'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { SvgXml } from 'react-native-svg'
-import { HybridDuckDB } from 'react-native-duckdb'
-import type { Database } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
+import type { Database } from '@pietgk/react-native-duckdb'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
@@ -48,9 +48,9 @@ const LOGO_SVG = `<svg width="230" height="205" viewBox="0 0 230 205" fill="none
 </defs>
 </svg>`
 
-const REPO_URL = 'https://github.com/pranshuchittora/react-native-duckdb'
-const NPM_URL = 'https://www.npmjs.com/package/react-native-duckdb'
-const ISSUES_URL = 'https://github.com/pranshuchittora/react-native-duckdb/issues'
+const REPO_URL = 'https://github.com/pietgk/react-native-duckdb'
+const RELEASES_URL = 'https://github.com/pietgk/react-native-duckdb/releases'
+const ISSUES_URL = 'https://github.com/pietgk/react-native-duckdb/issues'
 
 const EXTENSIONS = [
   { name: 'httpfs', icon: 'cloud-download-outline', color: brand.blue, desc: 'Query remote Parquet, CSV & JSON over HTTP/S3' },
@@ -60,7 +60,7 @@ const EXTENSIONS = [
 
 const LINKS = [
   { label: 'GitHub Repository', icon: 'github', url: REPO_URL },
-  { label: 'npm Package', icon: 'npm', url: NPM_URL },
+  { label: 'Releases', icon: 'tag-outline', url: RELEASES_URL },
   { label: 'Report an Issue', icon: 'bug-outline', url: ISSUES_URL },
   { label: 'DuckDB Documentation', icon: 'book-open-outline', url: 'https://duckdb.org/docs/' },
 ]

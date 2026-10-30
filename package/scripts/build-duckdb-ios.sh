@@ -6,33 +6,31 @@ set -euo pipefail
 # Called from RNDuckDB.podspec prepare_command.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-DUCKDB_DIR="${REPO_DIR}/duckdb"
+PACKAGE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+DUCKDB_DIR="${PACKAGE_DIR}/duckdb"
 BUILD_DIR="${DUCKDB_DIR}/build-ios"
 JOBS="$(sysctl -n hw.ncpu)"
 MIN_IOS="${1:-15.1}"
 
 echo "=== react-native-duckdb: Building DuckDB for iOS (min=${MIN_IOS}, jobs=${JOBS}) ==="
 
+bash "${SCRIPT_DIR}/fetch-duckdb.sh"
+
 # Step 1: Configure extensions
 echo "--- Configuring extensions ---"
 
-# Try to read extensions from Podfile.properties.json (Expo managed workflow).
-# RNDUCKDB_APP_IOS_DIR (the app's Podfile directory, passed by the podspec) is
-# checked first: the REPO_DIR-relative probes assume the package sits inside
-# the app tree, which is false for a file:/sibling checkout - node_modules
-# symlinks resolve to the physical package dir, so relative paths can't reach
-# the app from here.
+# Read extensions from Podfile.properties.json (Expo managed workflow).
+# RNDUCKDB_APP_IOS_DIR is the app's Podfile directory, passed by the podspec.
+# It is needed because node_modules symlinks resolve to the physical package
+# directory, so paths relative to this script can't reach the app.
 EXTENSIONS_FROM_PROPS=""
-for CANDIDATE in "${RNDUCKDB_APP_IOS_DIR:+${RNDUCKDB_APP_IOS_DIR}/Podfile.properties.json}" "${REPO_DIR}/../ios/Podfile.properties.json" "${REPO_DIR}/../../ios/Podfile.properties.json"; do
-  if [ -f "$CANDIDATE" ]; then
-    EXTENSIONS_FROM_PROPS=$(node -e "
-      const p = JSON.parse(require('fs').readFileSync('$CANDIDATE', 'utf8'));
-      if (p['react-native-duckdb.extensions']) process.stdout.write(p['react-native-duckdb.extensions']);
-    " 2>/dev/null || true)
-    break
-  fi
-done
+PODFILE_PROPS="${RNDUCKDB_APP_IOS_DIR:-}/Podfile.properties.json"
+if [ -f "$PODFILE_PROPS" ]; then
+  EXTENSIONS_FROM_PROPS=$(node -e "
+    const p = JSON.parse(require('fs').readFileSync('$PODFILE_PROPS', 'utf8'));
+    if (p['react-native-duckdb.extensions']) process.stdout.write(p['react-native-duckdb.extensions']);
+  " 2>/dev/null || true)
+fi
 
 if [ -n "$EXTENSIONS_FROM_PROPS" ]; then
   node "${SCRIPT_DIR}/configure-extensions.js" --duckdb-path "${DUCKDB_DIR}" --extensions "${EXTENSIONS_FROM_PROPS}"
@@ -53,10 +51,9 @@ if [ -f "$EXT_CONFIG" ] && grep -q "httpfs" "$EXT_CONFIG"; then
 fi
 
 # Skip the build when nothing that affects the output has changed
-PACKAGE_DIR="${REPO_DIR}/package"
 BUILD_KEY_FILE="${PACKAGE_DIR}/DuckDB.xcframework.key"
 BUILD_KEY=$(
-  { git -C "${DUCKDB_DIR}" rev-parse HEAD; echo "${MIN_IOS}"; cat "${EXT_CONFIG}" "$0" "${SCRIPT_DIR}/build-openssl-curl.sh"; } |
+  { cat "${PACKAGE_DIR}/duckdb.json"; echo "${MIN_IOS}"; cat "${EXT_CONFIG}" "$0" "${SCRIPT_DIR}/build-openssl-curl.sh"; } |
     shasum | cut -d' ' -f1
 )
 if [ -d "${PACKAGE_DIR}/DuckDB.xcframework" ] && [ "$(cat "$BUILD_KEY_FILE" 2>/dev/null)" = "$BUILD_KEY" ]; then
@@ -86,6 +83,7 @@ CMAKE_COMMON=(
   -DEXTENSION_STATIC_BUILD=OFF
   -DBUILD_EXTENSIONS_ONLY=OFF
   -DCMAKE_BUILD_TYPE=Release
+  -DOVERRIDE_GIT_DESCRIBE="$(node "${SCRIPT_DIR}/duckdb-version.js")"
   -DCMAKE_CXX_STANDARD=20
   -DBUILD_SHARED_LIBS=OFF
 )
@@ -112,14 +110,14 @@ build_arch() {
     echo "   Building OpenSSL + libcurl for ios-${MAPPED_ARCH}..."
     "${SCRIPT_DIR}/build-openssl-curl.sh" ios "${MAPPED_ARCH}" "${MIN_IOS}"
     HTTPFS_CMAKE_FLAGS=(
-      -DOPENSSL_ROOT_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}"
-      -DOPENSSL_INCLUDE_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/include"
-      -DOPENSSL_SSL_LIBRARY="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib/libssl.a"
-      -DOPENSSL_CRYPTO_LIBRARY="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib/libcrypto.a"
+      -DOPENSSL_ROOT_DIR="${PACKAGE_DIR}/vendor/openssl/ios-${MAPPED_ARCH}"
+      -DOPENSSL_INCLUDE_DIR="${PACKAGE_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/include"
+      -DOPENSSL_SSL_LIBRARY="${PACKAGE_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib/libssl.a"
+      -DOPENSSL_CRYPTO_LIBRARY="${PACKAGE_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib/libcrypto.a"
       -DOPENSSL_USE_STATIC_LIBS=TRUE
-      -DCURL_ROOT="${REPO_DIR}/vendor/curl/ios-${MAPPED_ARCH}"
-      -DCURL_INCLUDE_DIR="${REPO_DIR}/vendor/curl/ios-${MAPPED_ARCH}/include"
-      -DCURL_LIBRARY="${REPO_DIR}/vendor/curl/ios-${MAPPED_ARCH}/lib/libcurl.a"
+      -DCURL_ROOT="${PACKAGE_DIR}/vendor/curl/ios-${MAPPED_ARCH}"
+      -DCURL_INCLUDE_DIR="${PACKAGE_DIR}/vendor/curl/ios-${MAPPED_ARCH}/include"
+      -DCURL_LIBRARY="${PACKAGE_DIR}/vendor/curl/ios-${MAPPED_ARCH}/lib/libcurl.a"
     )
   fi
 
@@ -149,8 +147,8 @@ build_arch() {
 
   # Include vendor OpenSSL + libcurl static libs when httpfs is enabled
   if [ "$NEEDS_HTTPFS" = true ]; then
-    local VENDOR_SSL="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib"
-    local VENDOR_CURL="${REPO_DIR}/vendor/curl/ios-${MAPPED_ARCH}/lib"
+    local VENDOR_SSL="${PACKAGE_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/lib"
+    local VENDOR_CURL="${PACKAGE_DIR}/vendor/curl/ios-${MAPPED_ARCH}/lib"
     for vendor_lib in "${VENDOR_SSL}/libssl.a" "${VENDOR_SSL}/libcrypto.a" "${VENDOR_CURL}/libcurl.a"; do
       if [ -f "$vendor_lib" ]; then
         ALL_LIBS+=("${vendor_lib}")

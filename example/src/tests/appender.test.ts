@@ -1,5 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB, DuckDBError, withAppender } from 'react-native-duckdb'
+import { HybridDuckDB, DuckDBError, withAppender } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Appender', 'appendRow basic — 10 rows', async () => {
   const db = HybridDuckDB.open(':memory:', {})

@@ -1,6 +1,6 @@
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB, streamChunks } from 'react-native-duckdb'
-import type { QueryResult } from 'react-native-duckdb'
+import { HybridDuckDB, streamChunks } from '@pietgk/react-native-duckdb'
+import type { QueryResult } from '@pietgk/react-native-duckdb'
 
 TestRegistry.registerTest('Streaming', 'Pull-based fetchChunk — collects all rows', async () => {
   const db = HybridDuckDB.open(':memory:', {})

@@ -1,47 +1,12 @@
-import { Platform } from 'react-native'
 import { TestRegistry } from '../testing/TestRegistry'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import books from '../data/books.json'
-
-// DuckDB FTS has a known bug on Android where rowid values used internally
-// during index creation overflow int64, causing "Information loss on integer
-// cast" errors. Root cause: fts_indexing.cpp uses `SELECT rowid AS docid`
-// and Android in-memory rowids can exceed int64 max.
-// Upstream: https://github.com/duckdb/duckdb-fts/issues/24
-// Detect this at runtime so affected tests can skip gracefully.
-let ftsIndexingWorks: boolean | null = null
-function canCreateFtsIndex(): boolean {
-  if (ftsIndexingWorks !== null) return ftsIndexingWorks
-  if (Platform.OS !== 'android') {
-    ftsIndexingWorks = true
-    return true
-  }
-  const db = HybridDuckDB.open(':memory:', {})
-  try {
-    db.executeSync("LOAD 'fts'")
-    db.executeSync("CREATE TABLE _fts_probe (id VARCHAR, t VARCHAR)")
-    db.executeSync("INSERT INTO _fts_probe VALUES ('1', 'test')")
-    db.executeSync("PRAGMA create_fts_index('_fts_probe', 'id', 't')")
-    db.executeSync(
-      "SELECT fts_main__fts_probe.match_bm25(id, 'test') AS s FROM _fts_probe"
-    )
-    ftsIndexingWorks = true
-  } catch {
-    ftsIndexingWorks = false
-  } finally {
-    db.close()
-  }
-  return ftsIndexingWorks
-}
-
-const SKIP_MSG = 'SKIP: FTS indexing unavailable on this platform (DuckDB rowid overflow bug on Android)'
 
 // Test 1: Create FTS index and basic search
 TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Create FTS index and basic search',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -107,7 +72,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Multi-column search: title and description',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -158,7 +122,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'BM25 ranking order',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -257,7 +220,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'French stemmer: stem() function and search',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -312,7 +274,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Accent handling with strip_accents',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -368,7 +329,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Unicode: special characters, emoji, CJK',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -434,7 +394,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Index drop and recreate',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -499,7 +458,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Error: match_bm25 without FTS index',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -552,7 +510,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'NULL values in indexed columns',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -612,7 +569,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Scale test: 1K+ rows with FTS index',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")
@@ -665,7 +621,6 @@ TestRegistry.registerTest(
   'Full-Text Search (fts)',
   'Index not auto-updating: new data not in search',
   async () => {
-    if (!canCreateFtsIndex()) { console.debug(SKIP_MSG); return }
     const db = HybridDuckDB.open(':memory:', {})
     try {
       db.executeSync("LOAD 'fts'")

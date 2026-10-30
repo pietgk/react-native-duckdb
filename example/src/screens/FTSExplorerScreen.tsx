@@ -7,9 +7,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
 } from 'react-native'
-import { HybridDuckDB } from 'react-native-duckdb'
+import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
 import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
@@ -166,39 +165,11 @@ ORDER BY score DESC`
     [searchQuery, executeSearch]
   )
 
-  const isRowidBug = error?.includes('Information loss on integer cast')
-
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View testID="error-card" style={styles.errorContainer}>
-          {isRowidBug ? (
-            <>
-              <MaterialCommunityIcons name="bug" size={48} color={colors.error} />
-              <Text style={[styles.errorTitle, { color: colors.text }]}>
-                FTS Unavailable on Android
-              </Text>
-              <Text style={[styles.errorDesc, { color: colors.textSecondary }]}>
-                DuckDB's FTS extension has a known bug where internal rowid
-                values overflow on Android, preventing index creation.
-              </Text>
-              <Text style={[styles.errorDesc, { color: colors.textSecondary }]}>
-                The stem() function and FTS on iOS work correctly. This is an
-                upstream issue being tracked.
-              </Text>
-              <TouchableOpacity
-                onPress={() =>
-                  Linking.openURL('https://github.com/duckdb/duckdb-fts/issues/24')
-                }
-                style={[styles.issueLink, { backgroundColor: ACCENT + '20' }]}>
-                <Text style={[styles.issueLinkText, { color: ACCENT }]}>
-                  duckdb/duckdb-fts#24
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
-          )}
+          <Text style={[styles.errorText, { color: colors.error }]}>Error: {error}</Text>
         </View>
       </View>
     )
@@ -517,26 +488,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
     gap: 12,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  errorDesc: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  issueLink: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 4,
-  },
-  issueLinkText: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   errorText: {
     fontSize: 14,
