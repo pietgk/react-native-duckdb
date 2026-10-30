@@ -80,7 +80,14 @@ void HybridDatabase::ensurePrimary(const char* method) {
 }
 
 size_t HybridDatabase::getExternalMemorySize() noexcept {
-  return _isOpen ? (256 * 1024 * 1024) : 0;
+  // Hermes counts this against its heap limit and aborts the process when the
+  // total is too large, so this is a GC hint and not DuckDB's memory use, which
+  // memory_limit bounds outside the JS heap. Connections share the database.
+  constexpr size_t databaseSize = 8 * 1024 * 1024;
+  constexpr size_t connectionSize = 64 * 1024;
+
+  if (!_isOpen) return 0;
+  return _isPrimary ? databaseSize : connectionSize;
 }
 
 // --- Query execution (unchanged) ---

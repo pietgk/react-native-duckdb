@@ -226,6 +226,23 @@ TestRegistry.registerTest(CATEGORY, 'A database closed with a stream open keeps 
   stream.close()
 })
 
+// Hermes counts the size native objects report against its heap limit, so
+// holding many connections must not exhaust the JS heap.
+TestRegistry.registerTest(CATEGORY, 'Many open connections do not exhaust the JS heap', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    const connections = Array.from({ length: 30 }, () => db.connect())
+    let garbage: number[][] = []
+    for (let i = 0; i < 20000; i++) {
+      garbage = [new Array(1000).fill(i)]
+    }
+    if (garbage.length !== 1) throw new Error('Unreachable')
+    connections.forEach((connection) => connection.close())
+  } finally {
+    db.close()
+  }
+})
+
 // The stream can finish on its worker thread before start() returns to JS, so
 // this needs many attempts to hit the window where it resolves too early.
 TestRegistry.registerTest(CATEGORY, 'start resolves after every chunk is delivered', async () => {
