@@ -23,9 +23,11 @@ import './tests/paths.test'
 import './tests/benchmark.test'
 import { ThemeProvider, useTheme } from './theme'
 import { TabNavigator } from './navigation/TabNavigator'
+import { useTestAutorun } from './testing/useTestAutorun'
 
 function AppContent() {
   const { colors, isDark } = useTheme()
+  useTestAutorun()
 
   const navTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
