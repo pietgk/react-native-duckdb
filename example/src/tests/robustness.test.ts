@@ -225,3 +225,43 @@ TestRegistry.registerTest(CATEGORY, 'A database closed with a stream open keeps 
   await stream.fetchChunk().catch(() => undefined)
   stream.close()
 })
+
+TestRegistry.registerTest(CATEGORY, 'ASOF join returns the latest match', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    const rows = db
+      .executeSync(
+        `SELECT t.ts, p.price
+         FROM (VALUES (1), (3), (5)) AS t(ts)
+         ASOF LEFT JOIN (VALUES (1, 10), (4, 40)) AS p(ts, price)
+         ON t.ts >= p.ts
+         ORDER BY t.ts`
+      )
+      .toRows()
+    const prices = rows.map((row) => Number(row.price)).join(',')
+    if (prices !== '10,10,40') throw new Error(`Expected 10,10,40, got ${prices}`)
+    db.executeSync('SELECT 1')
+  } finally {
+    db.close()
+  }
+})
+
+// Partitioned, so the join hashes its keys. DuckDB's debug assertions on those
+// hashes are fatal and invalidate the whole database.
+TestRegistry.registerTest(CATEGORY, 'Partitioned ASOF join leaves the database usable', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    db.executeSync('CREATE TABLE trades AS SELECT i % 97 AS sym, i * 3 AS ts FROM range(200000) t(i)')
+    db.executeSync('CREATE TABLE prices AS SELECT i % 97 AS sym, i * 2 AS ts, i AS price FROM range(300000) t(i)')
+    const rows = db
+      .executeSync(
+        `SELECT count(*) AS cnt, count(p.price) AS matched
+         FROM trades t ASOF LEFT JOIN prices p ON t.sym = p.sym AND t.ts >= p.ts`
+      )
+      .toRows()
+    if (Number(rows[0].cnt) !== 200000) throw new Error(`Expected 200000 rows, got ${rows[0].cnt}`)
+    if (countRows(db, 'trades') !== 200000) throw new Error('Expected the database to stay usable')
+  } finally {
+    db.close()
+  }
+})

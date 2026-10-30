@@ -9,7 +9,13 @@
 # to targets in the parent directory (i.e. RNDuckDB). Compilers use the last -O
 # flag on the command line, so our -O3 overrides the -O0 from CMAKE_CXX_FLAGS_DEBUG.
 # NDEBUG disables assert() calls inside DuckDB.
-add_compile_options(-O3 -DNDEBUG)
+#
+# -UDEBUG: DuckDB adds -DDEBUG to CMAKE_CXX_FLAGS_DEBUG, and NDEBUG does not undo
+# it. DEBUG turns on checked numeric casts, and one of those fails on a 64-bit
+# hash in ~GroupedAggregateHashTable. An exception leaving a destructor ends the
+# process, so a small ASOF join crashed every debug build. These options follow
+# the config flags on the compile line, so -UDEBUG cancels the earlier -DDEBUG.
+add_compile_options(-O3 -DNDEBUG -UDEBUG)
 
 # VSS extension workaround: usearch library calls aligned_alloc() which requires
 # Android API 28+. We target API 24. Force-include a shim header that provides

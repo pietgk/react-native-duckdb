@@ -38,7 +38,7 @@ jobs:
       - name: Run all tests, including network tests
         run: scripts/run-device-tests.sh ios network=1
         env:
-          MIN_PASSED: 162
+          MIN_PASSED: 164
       - name: Install Maestro
         run: |
           curl -fsSL https://get.maestro.mobile.dev | bash
