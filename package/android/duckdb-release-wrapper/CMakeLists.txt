@@ -25,5 +25,5 @@ if(_VSS_ENABLED)
   add_compile_options(-include "${CMAKE_CURRENT_SOURCE_DIR}/aligned_alloc_shim.h")
 endif()
 
-set(DUCKDB_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../duckdb")
+set(DUCKDB_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../duckdb")
 add_subdirectory(${DUCKDB_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/duckdb)
