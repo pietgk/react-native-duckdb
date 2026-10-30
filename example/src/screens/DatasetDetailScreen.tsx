@@ -283,7 +283,7 @@ export function DatasetDetailScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Query</Text>
         <View style={[styles.editorContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.promptChar, { color: brand.yellow }]}>D</Text>
+          <Text style={[styles.promptChar, { color: colors.accentText }]}>D</Text>
           <View style={styles.editorWrapper}>
             <TextInput
               style={[styles.editorInput, { color: 'transparent' }]}

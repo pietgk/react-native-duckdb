@@ -17,6 +17,7 @@ import { SQLHighlighter } from '../components/SQLHighlighter'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 import { brand } from '../theme/colors'
+import { version as PKG_VERSION } from '../../../package/package.json'
 
 function getRNVersion(): string {
   const { major, minor, patch } = Platform.constants.reactNativeVersion
@@ -50,7 +51,6 @@ const LOGO_SVG = `<svg width="230" height="205" viewBox="0 0 230 205" fill="none
 const REPO_URL = 'https://github.com/pranshuchittora/react-native-duckdb'
 const NPM_URL = 'https://www.npmjs.com/package/react-native-duckdb'
 const ISSUES_URL = 'https://github.com/pranshuchittora/react-native-duckdb/issues'
-const PKG_VERSION = '0.1.0'
 
 const EXTENSIONS = [
   { name: 'httpfs', icon: 'cloud-download-outline', color: brand.blue, desc: 'Query remote Parquet, CSV & JSON over HTTP/S3' },
@@ -108,7 +108,7 @@ export function AboutScreen() {
       <View style={styles.header}>
         <SvgXml xml={LOGO_SVG} width={80} height={72} />
         <Text style={[styles.title, { color: colors.text }]}>DuckDB Explorer</Text>
-        <Text style={[styles.tagline, { color: brand.yellow }]}>
+        <Text style={[styles.tagline, { color: colors.accentText }]}>
           The analytical database in your pocket
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -147,7 +147,7 @@ export function AboutScreen() {
           {loading ? (
             <ActivityIndicator size="small" color={brand.yellow} />
           ) : (
-            <Text style={[styles.versionValue, { color: brand.yellow }]}>{duckdbVersion}</Text>
+            <Text style={[styles.versionValue, { color: colors.accentText }]}>{duckdbVersion}</Text>
           )}
         </View>
         <View style={styles.queryHint}>

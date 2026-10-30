@@ -206,7 +206,7 @@ export function QueryRunnerScreen({ navigation, route }: Props) {
       <KeyboardAwareScrollView bottomOffset={50} style={styles.body} keyboardShouldPersistTaps="handled">
         {/* SQL Editor */}
         <View style={[styles.editorContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.promptChar, { color: brand.yellow }]}>D</Text>
+          <Text style={[styles.promptChar, { color: colors.accentText }]}>D</Text>
           <View style={styles.editorWrapper}>
             <TextInput
               style={[styles.editor, { color: 'transparent' }]}

@@ -21,7 +21,7 @@ export function DatasetStack() {
       <Stack.Screen
         name="DatasetExplorer"
         component={DatasetExplorerScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, title: 'Datasets' }}
       />
       <Stack.Screen
         name="DatasetDetail"
