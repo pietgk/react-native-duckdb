@@ -52,6 +52,18 @@ if [ -f "$EXT_CONFIG" ] && grep -q "httpfs" "$EXT_CONFIG"; then
   echo "--- httpfs detected: will build OpenSSL + libcurl for each target ---"
 fi
 
+# Skip the build when nothing that affects the output has changed
+PACKAGE_DIR="${REPO_DIR}/package"
+BUILD_KEY_FILE="${PACKAGE_DIR}/DuckDB.xcframework.key"
+BUILD_KEY=$(
+  { git -C "${DUCKDB_DIR}" rev-parse HEAD; echo "${MIN_IOS}"; cat "${EXT_CONFIG}" "$0" "${SCRIPT_DIR}/build-openssl-curl.sh"; } |
+    shasum | cut -d' ' -f1
+)
+if [ -d "${PACKAGE_DIR}/DuckDB.xcframework" ] && [ "$(cat "$BUILD_KEY_FILE" 2>/dev/null)" = "$BUILD_KEY" ]; then
+  echo "=== DuckDB.xcframework is up to date ==="
+  exit 0
+fi
+
 # Invalidate cached builds if extension config changed
 EXT_CONFIG_HASH=$(md5 -q "${EXT_CONFIG}" 2>/dev/null || md5sum "${EXT_CONFIG}" 2>/dev/null | cut -d' ' -f1 || echo "none")
 for BUILD_SUBDIR in "build-ios-iphoneos-arm64" "build-ios-iphonesimulator-arm64"; do
@@ -180,8 +192,8 @@ xcodebuild -create-xcframework \
 
 # Step 4: Copy xcframework into package/ so CocoaPods can find it
 # vendored_frameworks paths must be within the pod source tree
-PACKAGE_DIR="${REPO_DIR}/package"
 rm -rf "${PACKAGE_DIR}/DuckDB.xcframework"
 cp -R "${BUILD_DIR}/DuckDB.xcframework" "${PACKAGE_DIR}/DuckDB.xcframework"
+echo "$BUILD_KEY" > "$BUILD_KEY_FILE"
 
 echo "=== DuckDB.xcframework created at ${PACKAGE_DIR}/DuckDB.xcframework ==="
