@@ -10,6 +10,7 @@
 #include "duckdb_includes.hpp"
 #include <memory>
 #include <stdexcept>
+#include <condition_variable>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -23,9 +24,10 @@ class HybridDatabase;
 
 struct ConnectionTracker {
   std::mutex mtx;
-  std::unordered_map<std::string, HybridDatabase*> connections;
+  // Weak because async work can release the last reference on another thread.
+  std::unordered_map<std::string, std::weak_ptr<HybridDatabase>> connections;
 
-  void add(const std::string& id, HybridDatabase* conn) {
+  void add(const std::string& id, const std::shared_ptr<HybridDatabase>& conn) {
     std::lock_guard<std::mutex> lk(mtx);
     connections[id] = conn;
   }
@@ -155,8 +157,20 @@ public:
       const std::vector<BatchCommand>& commands) override;
 
 private:
+  // Held by background tasks while they use _con, so close() can interrupt
+  // them and wait before releasing the connection.
+  class WorkScope {
+  public:
+    explicit WorkScope(HybridDatabase& db);
+    ~WorkScope();
+
+  private:
+    HybridDatabase& _db;
+  };
+
   void ensureOpen();
   void ensurePrimary(const char* method);
+  void shutdown();
 
   std::unique_ptr<duckdb::QueryResult> executeWithProgress(
       const std::string& sql,
@@ -170,12 +184,15 @@ private:
 
   std::shared_ptr<duckdb::DuckDB> _db;
   std::unique_ptr<duckdb::Connection> _con;
-  bool _isOpen;
+  std::atomic<bool> _isOpen;
   bool _isPrimary;
   std::string _id;
   std::string _docPath;
   std::shared_ptr<ConnectionTracker> _tracker;
   std::optional<std::function<void(double)>> _progressCallback;
+  std::mutex _workMutex;
+  std::condition_variable _workDone;
+  size_t _activeWork = 0;
 
   static std::atomic<uint64_t> _connectionIdCounter;
   static constexpr auto TAG = "Database";

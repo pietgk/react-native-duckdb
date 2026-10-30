@@ -147,16 +147,23 @@ jsi::Value HybridAppender::appendRowsRaw(jsi::Runtime& rt, const jsi::Value& /*t
   size_t rowCount = rows.size(rt);
   if (rowCount == 0) return jsi::Value::undefined();
 
-  // Get column count from first row
-  auto firstRow = rows.getValueAtIndex(rt, 0).getObject(rt).getArray(rt);
-  size_t colCount = firstRow.size(rt);
-
-  // Process first row
-  appendJSIRow(rt, firstRow, colCount);
-
-  // Process remaining rows
+  // Check every row first so that a bad row leaves nothing half appended
+  std::vector<jsi::Array> jsRows;
+  jsRows.reserve(rowCount);
+  for (size_t r = 0; r < rowCount; r++) {
+    jsRows.push_back(rows.getValueAtIndex(rt, r).getObject(rt).getArray(rt));
+  }
+  size_t colCount = jsRows[0].size(rt);
   for (size_t r = 1; r < rowCount; r++) {
-    auto row = rows.getValueAtIndex(rt, r).getObject(rt).getArray(rt);
+    size_t rowSize = jsRows[r].size(rt);
+    if (rowSize != colCount) {
+      throw jsi::JSError(rt, "[DuckDB] appendRows: row " + std::to_string(r) + " has " +
+                                 std::to_string(rowSize) + " values, expected " +
+                                 std::to_string(colCount));
+    }
+  }
+
+  for (const auto& row : jsRows) {
     appendJSIRow(rt, row, colCount);
   }
 
@@ -225,17 +232,18 @@ void HybridAppender::flush() {
 
 void HybridAppender::close() {
   if (_closed) return;
-
-  if (!_invalidated && _appender) {
-    try {
-      _appender->Close();
-    } catch (...) {
-      // close auto-flushes, but if that fails we still release
-    }
-  }
-
-  _appender.reset();
   _closed = true;
+
+  // Released on every path, including when the final flush fails.
+  auto appender = std::move(_appender);
+  if (_invalidated || !appender) return;
+
+  try {
+    appender->Close();
+  } catch (const std::exception& e) {
+    throw std::runtime_error(
+      std::string("[DuckDB] Appender close failed, pending rows were not written: ") + e.what());
+  }
 }
 
 size_t HybridAppender::getExternalMemorySize() noexcept {

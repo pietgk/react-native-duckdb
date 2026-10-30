@@ -65,8 +65,8 @@ std::shared_ptr<HybridQueryResultSpec> HybridStreamingResult::fetchNextChunk() {
 std::shared_ptr<Promise<std::optional<std::shared_ptr<HybridQueryResultSpec>>>>
 HybridStreamingResult::fetchChunk() {
   return Promise<std::optional<std::shared_ptr<HybridQueryResultSpec>>>::async(
-    [this]() -> std::optional<std::shared_ptr<HybridQueryResultSpec>> {
-      auto chunk = fetchNextChunk();
+    [self = shared_cast<HybridStreamingResult>()]() -> std::optional<std::shared_ptr<HybridQueryResultSpec>> {
+      auto chunk = self->fetchNextChunk();
       if (!chunk) return std::nullopt;
       return chunk;
     });
@@ -84,9 +84,9 @@ std::shared_ptr<Promise<void>> HybridStreamingResult::start() {
 
   auto callback = _onChunkCallback;
 
-  return Promise<void>::async([this, callback]() {
+  return Promise<void>::async([self = shared_cast<HybridStreamingResult>(), callback]() {
     while (true) {
-      auto chunk = fetchNextChunk();
+      auto chunk = self->fetchNextChunk();
       if (!chunk) break;
       callback(chunk);
     }
