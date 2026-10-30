@@ -1,4 +1,5 @@
 import React from 'react'
+import { StatusBar } from 'react-native'
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'
 import { KeyboardProvider } from 'react-native-keyboard-controller'
 import './tests/build.test'
@@ -44,6 +45,7 @@ function AppContent() {
 
   return (
     <NavigationContainer theme={navTheme}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <TabNavigator />
     </NavigationContainer>
   )
