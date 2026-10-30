@@ -110,7 +110,7 @@ build_arch() {
   local HTTPFS_CMAKE_FLAGS=()
   if [ "$NEEDS_HTTPFS" = true ]; then
     echo "   Building OpenSSL + libcurl for ios-${MAPPED_ARCH}..."
-    "${SCRIPT_DIR}/build-openssl-curl.sh" ios "${MAPPED_ARCH}"
+    "${SCRIPT_DIR}/build-openssl-curl.sh" ios "${MAPPED_ARCH}" "${MIN_IOS}"
     HTTPFS_CMAKE_FLAGS=(
       -DOPENSSL_ROOT_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}"
       -DOPENSSL_INCLUDE_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/include"
