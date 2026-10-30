@@ -9,5 +9,7 @@ const withDuckDB: ConfigPlugin<DuckDBPluginProps> = (config, props = {}) => {
   return config;
 };
 
+// package.json sits outside rootDir, so it cannot be imported here.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require('../../package.json');
 export default createRunOncePlugin(withDuckDB, pkg.name, pkg.version);

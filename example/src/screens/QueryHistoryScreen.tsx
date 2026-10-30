@@ -34,7 +34,7 @@ function formatMs(ms: number | null): string {
 }
 
 export function QueryHistoryScreen({ navigation }: Props) {
-  const { colors, brand } = useTheme()
+  const { colors } = useTheme()
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const storeDbRef = useRef<ReturnType<typeof HybridDuckDB.open> | null>(null)
 

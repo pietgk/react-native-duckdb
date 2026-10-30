@@ -84,7 +84,7 @@ const METRIC_SQL_FN: Record<DistanceMetric, string> = {
 }
 
 export function VSSExplorerScreen() {
-  const { colors, isDark } = useTheme()
+  const { colors } = useTheme()
   const [isReady, setIsReady] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -152,6 +152,8 @@ CREATE INDEX idx_ip ON embeddings USING HNSW (vec) WITH (metric = 'ip');`
         dbRef.current = null
       }
     }
+    // Runs once on mount. runQuery is declared below, so it cannot be a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const buildQueryVector = useCallback((cluster: string): number[] => {

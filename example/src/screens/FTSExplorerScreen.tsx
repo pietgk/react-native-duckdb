@@ -7,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
   Linking,
 } from 'react-native'
 import { HybridDuckDB } from 'react-native-duckdb'
@@ -17,14 +16,14 @@ import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
-const books = require('../data/books.json')
+import books from '../data/books.json'
 
 const ACCENT = '#00C770'
 
 type SearchMode = 'match' | 'prefix' | 'phrase'
 
 export function FTSExplorerScreen() {
-  const { colors, isDark } = useTheme()
+  const { colors } = useTheme()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchMode, setSearchMode] = useState<SearchMode>('match')
   const [columns, setColumns] = useState<string[]>([])

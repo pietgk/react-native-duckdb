@@ -33,7 +33,6 @@ TestRegistry.registerTest('Errors', 'Delete in-memory throws', async () => {
 })
 
 TestRegistry.registerTest('Errors', 'Open with invalid config key', async () => {
-  let threw = false
   try {
     const db = HybridDuckDB.open(':memory:', {
       invalid_nonexistent_option_xyz: 'value',
@@ -41,14 +40,8 @@ TestRegistry.registerTest('Errors', 'Open with invalid config key', async () => 
     // If DuckDB silently ignores unknown options, close and note it
     console.debug('DuckDB did not throw on invalid config key — silently ignored')
     db.close()
-    return
   } catch (e: any) {
-    threw = true
     console.debug(`Invalid config threw as expected: ${e.message}`)
-  }
-  if (!threw) {
-    // Already handled above with early return
-    throw new Error('Unexpected state')
   }
 })
 

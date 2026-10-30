@@ -41,7 +41,7 @@ TestRegistry.registerTest(
 
       const vec = rows[0].vec as string
       // DuckDB returns ARRAY as a string like "[0.0, 0.0998334, ...]"
-      const values = vec.replace(/[\[\]]/g, '').split(',').map(Number)
+      const values = vec.replace(/[[\]]/g, '').split(',').map(Number)
       if (values.length !== DIMS) throw new Error(`Expected ${DIMS} dimensions, got ${values.length}`)
 
       // Verify first few values match our seed function

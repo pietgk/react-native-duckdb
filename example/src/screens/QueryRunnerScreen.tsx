@@ -8,7 +8,6 @@ import {
   Alert,
   Keyboard,
   StyleSheet,
-  Platform,
   ActivityIndicator,
 } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'

@@ -15,7 +15,6 @@ import { useTheme } from '../theme'
 type Status = 'idle' | 'generating' | 'streaming' | 'complete' | 'cancelled' | 'error'
 
 const TOTAL_ROWS = 100_000
-const ESTIMATED_CHUNK_SIZE = 2048
 
 export function StreamingDemoScreen() {
   const { colors, brand } = useTheme()

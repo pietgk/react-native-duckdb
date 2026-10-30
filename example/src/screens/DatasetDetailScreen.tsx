@@ -19,7 +19,6 @@ import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
 import type { DatasetStackParamList } from '../navigation/types'
-import type { Dataset } from '../data/datasets'
 import { FORMAT_COLORS } from '../data/datasets'
 
 type DetailRoute = RouteProp<DatasetStackParamList, 'DatasetDetail'>

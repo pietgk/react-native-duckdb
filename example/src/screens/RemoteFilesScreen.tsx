@@ -52,7 +52,7 @@ function detectFileType(url: string): FileType | null {
 }
 
 export function RemoteFilesScreen() {
-  const { colors, isDark } = useTheme()
+  const { colors } = useTheme()
   const [url, setUrl] = useState('')
   const [fileType, setFileType] = useState<FileType>('parquet')
   const [query, setQuery] = useState('')
