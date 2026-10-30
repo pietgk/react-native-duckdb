@@ -1,6 +1,22 @@
 import type { TestCase, TestResult } from './types'
 import { TestRegistry } from './TestRegistry'
 
+export const BENCHMARK_CATEGORY = 'Benchmarks'
+// Depends on third-party URLs, so CI runs it on a schedule rather than per PR.
+export const NETWORK_CATEGORY = 'Remote Queries'
+
+export interface RunAllOptions {
+  includeBenchmarks?: boolean
+  includeNetwork?: boolean
+  onCategoryDone?: (results: Map<string, TestResult[]>) => void
+}
+
+export interface TestSummary {
+  passed: number
+  failed: number
+  durationMs: number
+}
+
 export class TestRunner {
   static async runTest(test: TestCase): Promise<TestResult> {
     const logs: string[] = []
@@ -37,11 +53,27 @@ export class TestRunner {
     return results
   }
 
-  static async runAll(): Promise<Map<string, TestResult[]>> {
+  static async runAll({
+    includeBenchmarks = false,
+    includeNetwork = true,
+    onCategoryDone,
+  }: RunAllOptions = {}): Promise<Map<string, TestResult[]>> {
     const allResults = new Map<string, TestResult[]>()
     for (const category of TestRegistry.getCategories()) {
+      if (!includeBenchmarks && category === BENCHMARK_CATEGORY) continue
+      if (!includeNetwork && category === NETWORK_CATEGORY) continue
       allResults.set(category, await TestRunner.runCategory(category))
+      onCategoryDone?.(allResults)
     }
     return allResults
+  }
+
+  static summarize(results: Map<string, TestResult[]>): TestSummary {
+    const all = Array.from(results.values()).flat()
+    return {
+      passed: all.filter((r) => r.status === 'pass').length,
+      failed: all.filter((r) => r.status === 'fail').length,
+      durationMs: all.reduce((sum, r) => sum + (r.durationMs ?? 0), 0),
+    }
   }
 }

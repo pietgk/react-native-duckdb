@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Cross-compile OpenSSL and libcurl for iOS and Android targets.
-# Usage: build-openssl-curl.sh <platform> <arch>
+# Usage: build-openssl-curl.sh <platform> <arch> [min-ios]
 #   platform: ios | android
 #   arch: arm64, simulator-arm64 (iOS), arm64-v8a, x86_64 (Android)
 #
@@ -44,6 +44,7 @@ fi
 
 PLATFORM="$1"
 ARCH="$2"
+MIN_IOS="${3:-15.1}"
 TARGET="${PLATFORM}-${ARCH}"
 JOBS="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
 
@@ -55,7 +56,7 @@ check_cache() {
   local out_dir="$1"
   local version="$2"
   local marker="${out_dir}/.version"
-  if [ -f "$marker" ] && [ "$(cat "$marker")" = "$version" ]; then
+  if [ -f "$marker" ] && [ "$(cat "$marker")" = "${version}-${MIN_IOS}" ]; then
     return 0
   fi
   return 1
@@ -64,7 +65,7 @@ check_cache() {
 write_version_marker() {
   local out_dir="$1"
   local version="$2"
-  echo "$version" > "${out_dir}/.version"
+  echo "${version}-${MIN_IOS}" > "${out_dir}/.version"
 }
 
 # Download source tarball if not cached
@@ -113,11 +114,11 @@ build_openssl() {
   case "$TARGET" in
     ios-arm64)
       CONFIGURE_TARGET="ios64-xcrun"
-      EXTRA_FLAGS=("-miphoneos-version-min=15.1")
+      EXTRA_FLAGS=("-miphoneos-version-min=${MIN_IOS}")
       ;;
     ios-simulator-arm64)
       CONFIGURE_TARGET="iossimulator-xcrun"
-      EXTRA_FLAGS=("-miphonesimulator-version-min=15.1")
+      EXTRA_FLAGS=("-miphonesimulator-version-min=${MIN_IOS}")
       ;;
     android-arm64-v8a)
       [ -z "${ANDROID_NDK_ROOT:-}" ] && { echo "ERROR: ANDROID_NDK_ROOT not set"; exit 1; }
@@ -218,7 +219,7 @@ build_curl() {
         -DCMAKE_SYSTEM_NAME=iOS
         -DCMAKE_OSX_SYSROOT="$(xcrun --sdk iphoneos --show-sdk-path)"
         -DCMAKE_OSX_ARCHITECTURES=arm64
-        -DCMAKE_OSX_DEPLOYMENT_TARGET=15.1
+        -DCMAKE_OSX_DEPLOYMENT_TARGET="${MIN_IOS}"
       )
       ;;
     ios-simulator-arm64)
@@ -226,7 +227,7 @@ build_curl() {
         -DCMAKE_SYSTEM_NAME=iOS
         -DCMAKE_OSX_SYSROOT="$(xcrun --sdk iphonesimulator --show-sdk-path)"
         -DCMAKE_OSX_ARCHITECTURES=arm64
-        -DCMAKE_OSX_DEPLOYMENT_TARGET=15.1
+        -DCMAKE_OSX_DEPLOYMENT_TARGET="${MIN_IOS}"
       )
       ;;
     android-arm64-v8a)

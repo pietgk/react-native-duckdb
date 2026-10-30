@@ -1,0 +1,3 @@
+[install]
+# The native builds use hoisted paths such as node_modules/react-native.
+linker = "hoisted"

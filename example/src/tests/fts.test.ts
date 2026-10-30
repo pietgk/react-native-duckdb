@@ -1,8 +1,7 @@
 import { Platform } from 'react-native'
 import { TestRegistry } from '../testing/TestRegistry'
 import { HybridDuckDB } from 'react-native-duckdb'
-
-const books = require('../data/books.json')
+import books from '../data/books.json'
 
 // DuckDB FTS has a known bug on Android where rowid values used internally
 // during index creation overflow int64, causing "Information loss on integer

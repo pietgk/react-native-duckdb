@@ -3,6 +3,7 @@
 #include "HybridStreamingResult.hpp"
 #include "HybridAppender.hpp"
 #include "utils.hpp"
+#include <chrono>
 
 namespace margelo::nitro::rnduckdb {
 
@@ -33,11 +34,36 @@ void HybridDatabase::close(const std::optional<CloseOptions>& options) {
     _tracker->remove(_id);
   }
 
+  shutdown();
+}
+
+void HybridDatabase::shutdown() {
+  // DuckDB clears the interrupt flag when a query starts, so repeat it in case
+  // a task was still about to begin.
+  constexpr auto interruptInterval = std::chrono::milliseconds(20);
+
+  std::unique_lock<std::mutex> lock(_workMutex);
+  _isOpen = false;
+  while (_activeWork > 0) {
+    _con->Interrupt();
+    _workDone.wait_for(lock, interruptInterval);
+  }
   _con.reset();
   if (_isPrimary) {
     _db.reset();
   }
-  _isOpen = false;
+}
+
+HybridDatabase::WorkScope::WorkScope(HybridDatabase& db) : _db(db) {
+  std::lock_guard<std::mutex> lock(_db._workMutex);
+  _db.ensureOpen();
+  _db._activeWork++;
+}
+
+HybridDatabase::WorkScope::~WorkScope() {
+  std::lock_guard<std::mutex> lock(_db._workMutex);
+  _db._activeWork--;
+  _db._workDone.notify_all();
 }
 
 void HybridDatabase::ensureOpen() {
@@ -54,7 +80,14 @@ void HybridDatabase::ensurePrimary(const char* method) {
 }
 
 size_t HybridDatabase::getExternalMemorySize() noexcept {
-  return _isOpen ? (256 * 1024 * 1024) : 0;
+  // Hermes counts this against its heap limit and aborts the process when the
+  // total is too large, so this is a GC hint and not DuckDB's memory use, which
+  // memory_limit bounds outside the JS heap. Connections share the database.
+  constexpr size_t databaseSize = 8 * 1024 * 1024;
+  constexpr size_t connectionSize = 64 * 1024;
+
+  if (!_isOpen) return 0;
+  return _isPrimary ? databaseSize : connectionSize;
 }
 
 // --- Query execution (unchanged) ---
@@ -100,15 +133,17 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridDatabase:
 
   if (onProgress) {
     return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-      [this, sql, copiedParams, onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
-        auto result = this->executeWithProgress(sql, copiedParams, onProgress);
+      [self = shared_cast<HybridDatabase>(), sql, copiedParams, onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
+        WorkScope work(*self);
+        auto result = self->executeWithProgress(sql, copiedParams, onProgress);
         return std::make_shared<HybridQueryResult>(std::move(result));
       });
   }
 
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [this, sql, copiedParams]() -> std::shared_ptr<HybridQueryResultSpec> {
-      return this->executeSync(sql, copiedParams);
+    [self = shared_cast<HybridDatabase>(), sql, copiedParams]() -> std::shared_ptr<HybridQueryResultSpec> {
+      WorkScope work(*self);
+      return self->executeSync(sql, copiedParams);
     });
 }
 
@@ -119,7 +154,7 @@ std::shared_ptr<HybridPreparedStatementSpec> HybridDatabase::prepare(
   if (stmt->HasError()) {
     throw std::runtime_error("[DuckDB] " + stmt->GetError());
   }
-  return std::make_shared<HybridPreparedStatement>(std::move(stmt), *_con);
+  return std::make_shared<HybridPreparedStatement>(std::move(stmt));
 }
 
 // --- Query cancellation ---
@@ -307,15 +342,17 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridDatabase:
 
   if (onProgress) {
     return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-      [this, sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
-        auto result = this->executeNamedWithProgress(sql, copiedParams, onProgress);
+      [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
+        WorkScope work(*self);
+        auto result = self->executeNamedWithProgress(sql, copiedParams, onProgress);
         return std::make_shared<HybridQueryResult>(std::move(result));
       });
   }
 
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [this, sql, copiedParams = std::move(copiedParams)]() -> std::shared_ptr<HybridQueryResultSpec> {
-      return this->executeSyncNamed(sql, copiedParams);
+    [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams)]() -> std::shared_ptr<HybridQueryResultSpec> {
+      WorkScope work(*self);
+      return self->executeSyncNamed(sql, copiedParams);
     });
 }
 
@@ -329,7 +366,7 @@ std::shared_ptr<HybridDatabaseSpec> HybridDatabase::connect() {
   auto con = std::make_unique<duckdb::Connection>(*_db);
 
   auto child = std::make_shared<HybridDatabase>(_db, std::move(con), id, _tracker, _docPath);
-  _tracker->add(id, child.get());
+  _tracker->add(id, child);
 
   return child;
 }
@@ -353,15 +390,17 @@ void HybridDatabase::closeConnections() {
 void ConnectionTracker::closeAll() {
   // Collect pointers under lock, then close outside lock
   // (close() calls tracker->remove() which also locks)
-  std::vector<HybridDatabase*> toClose;
+  std::vector<std::shared_ptr<HybridDatabase>> toClose;
   {
     std::lock_guard<std::mutex> lk(mtx);
     toClose.reserve(connections.size());
-    for (const auto& [_, conn] : connections) {
-      toClose.push_back(conn);
+    for (const auto& [_, weakConn] : connections) {
+      if (auto conn = weakConn.lock()) {
+        toClose.push_back(std::move(conn));
+      }
     }
   }
-  for (auto* conn : toClose) {
+  for (const auto& conn : toClose) {
     conn->close(std::nullopt);
   }
 }
@@ -383,8 +422,12 @@ std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatab
   }
 
   return Promise<std::shared_ptr<HybridStreamingResultSpec>>::async(
-    [this, sql, copiedParams, onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
-      auto streamCon = std::make_unique<duckdb::Connection>(*_db);
+    [self = shared_cast<HybridDatabase>(), sql, copiedParams, onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
+      // The stream owns this connection, so close() only has to wait for its creation.
+      auto streamCon = [&self] {
+        WorkScope work(*self);
+        return std::make_unique<duckdb::Connection>(*self->_db);
+      }();
 
       if (onProgress) {
         streamCon->context->config.enable_progress_bar = true;
@@ -471,8 +514,12 @@ std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatab
   }
 
   return Promise<std::shared_ptr<HybridStreamingResultSpec>>::async(
-    [this, sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
-      auto streamCon = std::make_unique<duckdb::Connection>(*_db);
+    [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
+      // The stream owns this connection, so close() only has to wait for its creation.
+      auto streamCon = [&self] {
+        WorkScope work(*self);
+        return std::make_unique<duckdb::Connection>(*self->_db);
+      }();
 
       if (onProgress) {
         streamCon->context->config.enable_progress_bar = true;
@@ -553,7 +600,8 @@ void HybridDatabase::attach(const std::string& path, const std::string& alias,
 
   auto resolvedPath = resolvePath(_docPath, path);
 
-  std::string sql = "ATTACH '" + resolvedPath + "' AS " + alias;
+  std::string sql = "ATTACH " + duckdb::KeywordHelper::WriteQuoted(resolvedPath, '\'') + " AS " +
+                    duckdb::KeywordHelper::WriteOptionallyQuoted(alias);
 
   // Build options list
   std::vector<std::string> opts;
@@ -562,7 +610,7 @@ void HybridDatabase::attach(const std::string& path, const std::string& alias,
       opts.push_back("READ_ONLY");
     }
     if (options->type && !options->type->empty()) {
-      opts.push_back("TYPE " + *options->type);
+      opts.push_back("TYPE " + duckdb::KeywordHelper::WriteOptionallyQuoted(*options->type));
     }
   }
 
@@ -584,7 +632,7 @@ void HybridDatabase::attach(const std::string& path, const std::string& alias,
 void HybridDatabase::detach(const std::string& alias) {
   ensureOpen();
 
-  auto result = _con->Query("DETACH " + alias);
+  auto result = _con->Query("DETACH " + duckdb::KeywordHelper::WriteOptionallyQuoted(alias));
   if (result->HasError()) {
     throw std::runtime_error("[DuckDB] " + result->GetError());
   }
@@ -600,44 +648,46 @@ BatchResult HybridDatabase::executeBatchSync(const std::vector<BatchCommand>& co
     throw std::runtime_error("[DuckDB] " + beginResult->GetError());
   }
 
-  double totalRowsAffected = 0;
+  // Anything below can throw, including reading a "Count" column that is not a number.
+  try {
+    double totalRowsAffected = 0;
 
-  for (const auto& cmd : commands) {
-    if (cmd.params && !cmd.params->empty()) {
-      auto prepared = _con->Prepare(cmd.query);
-      if (prepared->HasError()) {
-        _con->Query("ROLLBACK");
-        throw std::runtime_error("[DuckDB] " + prepared->GetError());
-      }
-      auto values = toValues(*cmd.params);
-      auto queryResult = prepared->Execute(values, false);
-      if (queryResult->HasError()) {
-        _con->Query("ROLLBACK");
-        throw std::runtime_error("[DuckDB] " + queryResult->GetError());
-      }
-      auto& result = queryResult->Cast<duckdb::MaterializedQueryResult>();
-      if (result.ColumnCount() == 1 && result.names[0] == "Count") {
-        totalRowsAffected += result.GetValue(0, 0).GetValue<int64_t>();
-      }
-    } else {
-      auto result = _con->Query(cmd.query);
-      if (result->HasError()) {
-        _con->Query("ROLLBACK");
-        throw std::runtime_error("[DuckDB] " + result->GetError());
-      }
-      if (result->ColumnCount() == 1 && result->names[0] == "Count") {
-        totalRowsAffected += result->GetValue(0, 0).GetValue<int64_t>();
+    for (const auto& cmd : commands) {
+      if (cmd.params && !cmd.params->empty()) {
+        auto prepared = _con->Prepare(cmd.query);
+        if (prepared->HasError()) {
+          throw std::runtime_error("[DuckDB] " + prepared->GetError());
+        }
+        auto values = toValues(*cmd.params);
+        auto queryResult = prepared->Execute(values, false);
+        if (queryResult->HasError()) {
+          throw std::runtime_error("[DuckDB] " + queryResult->GetError());
+        }
+        auto& result = queryResult->Cast<duckdb::MaterializedQueryResult>();
+        if (result.ColumnCount() == 1 && result.names[0] == "Count") {
+          totalRowsAffected += result.GetValue(0, 0).GetValue<int64_t>();
+        }
+      } else {
+        auto result = _con->Query(cmd.query);
+        if (result->HasError()) {
+          throw std::runtime_error("[DuckDB] " + result->GetError());
+        }
+        if (result->ColumnCount() == 1 && result->names[0] == "Count") {
+          totalRowsAffected += result->GetValue(0, 0).GetValue<int64_t>();
+        }
       }
     }
-  }
 
-  auto commitResult = _con->Query("COMMIT");
-  if (commitResult->HasError()) {
+    auto commitResult = _con->Query("COMMIT");
+    if (commitResult->HasError()) {
+      throw std::runtime_error("[DuckDB] " + commitResult->GetError());
+    }
+
+    return BatchResult(totalRowsAffected);
+  } catch (...) {
     _con->Query("ROLLBACK");
-    throw std::runtime_error("[DuckDB] " + commitResult->GetError());
+    throw;
   }
-
-  return BatchResult(totalRowsAffected);
 }
 
 std::shared_ptr<Promise<BatchResult>> HybridDatabase::executeBatch(
@@ -653,8 +703,9 @@ std::shared_ptr<Promise<BatchResult>> HybridDatabase::executeBatch(
   }
 
   return Promise<BatchResult>::async(
-    [this, copiedCommands = std::move(copiedCommands)]() -> BatchResult {
-      return this->executeBatchSync(copiedCommands);
+    [self = shared_cast<HybridDatabase>(), copiedCommands = std::move(copiedCommands)]() -> BatchResult {
+      WorkScope work(*self);
+      return self->executeBatchSync(copiedCommands);
     });
 }
 

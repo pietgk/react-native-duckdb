@@ -14,6 +14,7 @@ import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import books from '../data/books.json'
 
 const ACCENT = '#FF6900'
 
@@ -123,7 +124,6 @@ export function FileQueriesScreen() {
     try {
       await db.execute('SELECT 1 FROM books_data LIMIT 1')
     } catch {
-      const books = require('../data/books.json')
       await db.execute(
         'CREATE TABLE books_data (id VARCHAR, title VARCHAR, description VARCHAR, author VARCHAR, language VARCHAR)'
       )
@@ -299,7 +299,7 @@ export function FileQueriesScreen() {
 
       {/* Error */}
       {error && (
-        <View style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
+        <View testID="error-card" style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
           <MaterialCommunityIcons name="alert-circle" size={20} color={colors.error} />
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
         </View>

@@ -127,7 +127,7 @@ appender.appendRow([1, 'sensor_a', 23.5, true])
 
 ### appendRows()
 
-Appends multiple rows at once.
+Appends multiple rows at once. Every row must have the same length. If one differs, this throws and appends nothing.
 
 ```ts
 appender.appendRows([
@@ -157,7 +157,7 @@ Throws if column arrays have different lengths.
 // Manual flush — makes buffered rows visible to queries
 appender.flush()
 
-// Close — flushes remaining rows and releases resources
+// Close - flushes remaining rows and releases resources. Throws if the flush fails
 appender.close()
 ```
 

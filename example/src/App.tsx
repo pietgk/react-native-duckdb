@@ -1,4 +1,5 @@
 import React from 'react'
+import { StatusBar } from 'react-native'
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'
 import { KeyboardProvider } from 'react-native-keyboard-controller'
 import './tests/build.test'
@@ -20,12 +21,15 @@ import './tests/remote.test'
 import './tests/fts.test'
 import './tests/vss.test'
 import './tests/paths.test'
+import './tests/robustness.test'
 import './tests/benchmark.test'
 import { ThemeProvider, useTheme } from './theme'
 import { TabNavigator } from './navigation/TabNavigator'
+import { useTestAutorun } from './testing/useTestAutorun'
 
 function AppContent() {
   const { colors, isDark } = useTheme()
+  useTestAutorun()
 
   const navTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
@@ -42,6 +46,7 @@ function AppContent() {
 
   return (
     <NavigationContainer theme={navTheme}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <TabNavigator />
     </NavigationContainer>
   )

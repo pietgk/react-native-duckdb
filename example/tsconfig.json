@@ -2,6 +2,7 @@
   "extends": "@react-native/typescript-config/tsconfig.json",
   "include": ["src", "index.js", "../package/src"],
   "compilerOptions": {
+    "lib": ["ESNext"],
     "baseUrl": ".",
     "paths": {
       "react-native-duckdb": ["../package/src"]

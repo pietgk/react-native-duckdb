@@ -16,6 +16,7 @@ export const light = {
   error: '#CF222E',
   tabBarBackground: '#F6F8FA',
   tabBarActiveTint: '#B8A600',
+  accentText: '#7A6C00',
   tabBarInactiveTint: '#656D76',
 }
 
@@ -29,6 +30,7 @@ export const dark = {
   error: '#F85149',
   tabBarBackground: '#0D1117',
   tabBarActiveTint: brand.yellow,
+  accentText: brand.yellow,
   tabBarInactiveTint: '#8B949E',
 }
 
@@ -40,7 +42,7 @@ export const syntaxLight = {
   number: '#d700af',
   function: '#008700',
   comment: '#626262',
-  operator: brand.yellow,
+  operator: '#7A6C00',
 }
 
 export const syntaxDark = {

@@ -8,7 +8,6 @@ import {
   Alert,
   Keyboard,
   StyleSheet,
-  Platform,
   ActivityIndicator,
 } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
@@ -206,7 +205,7 @@ export function QueryRunnerScreen({ navigation, route }: Props) {
       <KeyboardAwareScrollView bottomOffset={50} style={styles.body} keyboardShouldPersistTaps="handled">
         {/* SQL Editor */}
         <View style={[styles.editorContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.promptChar, { color: brand.yellow }]}>D</Text>
+          <Text style={[styles.promptChar, { color: colors.accentText }]}>D</Text>
           <View style={styles.editorWrapper}>
             <TextInput
               style={[styles.editor, { color: 'transparent' }]}
@@ -295,7 +294,7 @@ export function QueryRunnerScreen({ navigation, route }: Props) {
 
         {/* Error card */}
         {error && (
-          <View style={[styles.errorCard, { backgroundColor: isDark ? '#3D1518' : '#FEE2E2', borderColor: isDark ? '#6B2126' : '#FECACA' }]}>
+          <View testID="error-card" style={[styles.errorCard, { backgroundColor: isDark ? '#3D1518' : '#FEE2E2', borderColor: isDark ? '#6B2126' : '#FECACA' }]}>
             <MaterialCommunityIcons name="alert-circle" size={16} color={colors.error} />
             <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           </View>

@@ -11,10 +11,8 @@ namespace margelo::nitro::rnduckdb {
 
 class HybridPreparedStatement : public HybridPreparedStatementSpec {
 public:
-  HybridPreparedStatement(
-      std::shared_ptr<duckdb::PreparedStatement> stmt,
-      duckdb::Connection& con)
-      : HybridObject(TAG), _stmt(std::move(stmt)), _con(con), _finalized(false) {}
+  explicit HybridPreparedStatement(std::shared_ptr<duckdb::PreparedStatement> stmt)
+      : HybridObject(TAG), _stmt(std::move(stmt)), _finalized(false) {}
 
   ~HybridPreparedStatement() override {
     finalize();
@@ -40,7 +38,6 @@ private:
   void ensureNotFinalized();
 
   std::shared_ptr<duckdb::PreparedStatement> _stmt;
-  duckdb::Connection& _con;
   bool _finalized;
 
   static constexpr auto TAG = "PreparedStatement";

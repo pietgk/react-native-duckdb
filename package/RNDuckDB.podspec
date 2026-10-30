@@ -15,6 +15,13 @@ Pod::Spec.new do |s|
   # Build DuckDB from source at pod-install time.
   # Creates DuckDB.xcframework with all configured extensions statically linked.
   # Scripts and duckdb submodule live at the repo root (one level above package/).
+  # Pass the app's Podfile directory so the build script can find the app's
+  # extension config regardless of where this package physically lives -
+  # node_modules symlinks resolve to the real checkout, so the script's own
+  # relative probes can't be trusted (see build-duckdb-ios.sh).
+  # Passed through ENV because Podfile.lock hashes the evaluated spec: an
+  # absolute path in prepare_command would change the checksum per machine.
+  ENV["RNDUCKDB_APP_IOS_DIR"] = (Pod::Config.instance.installation_root.to_s rescue "")
   s.prepare_command = <<-CMD
     bash ../scripts/build-duckdb-ios.sh #{min_ios_version_supported}
   CMD
@@ -62,14 +69,10 @@ Pod::Spec.new do |s|
 
   # When httpfs extension is included, OpenSSL and libcurl are statically linked
   # into the xcframework but still need system framework dependencies at link time.
-  ext_meta = File.join(__dir__, ".duckdb-extensions.json")
-  if File.exist?(ext_meta)
-    ext_info = JSON.parse(File.read(ext_meta)) rescue {}
-    if ext_info["httpfs"]
-      s.frameworks = ["Security", "SystemConfiguration"]
-      s.libraries = ["z"]
-    end
-  end
+  # Declared unconditionally: this podspec is evaluated before prepare_command
+  # runs, so it can't know which extensions the xcframework will contain.
+  s.frameworks = ["Security", "SystemConfiguration"]
+  s.libraries = ["z"]
 
   install_modules_dependencies(s)
 end

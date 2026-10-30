@@ -348,7 +348,7 @@ export function DatasetExplorerScreen() {
         {loadingMore ? (
           <ActivityIndicator size="small" color={brand.yellow} />
         ) : (
-          <Text style={[styles.loadMoreText, { color: brand.yellow }]}>Load More</Text>
+          <Text style={[styles.loadMoreText, { color: colors.accentText }]}>Load More</Text>
         )}
       </TouchableOpacity>
     )

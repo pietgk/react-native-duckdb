@@ -9,10 +9,11 @@
   ],
   "scripts": {
     "typecheck": "bun --filter=\"**\" typecheck",
-    "lint": "bun package lint",
+    "lint": "eslint .",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_modules package/lib",
     "package": "bun --cwd package",
-    "example": "bun --cwd example"
+    "example": "bun --cwd example",
+    "test": "bun --cwd package test"
   },
   "engines": {
     "node": ">=20"
@@ -23,10 +24,15 @@
     "react-native-nitro-modules": "0.33.9"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@react-native/babel-preset": "0.82.1",
     "@react-native/metro-config": "0.82.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
     "nitrogen": "0.33.9",
     "prettier": "^3.6.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.72.1"
   }
 }

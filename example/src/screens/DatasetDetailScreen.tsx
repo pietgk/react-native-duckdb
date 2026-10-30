@@ -19,7 +19,6 @@ import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
 import type { DatasetStackParamList } from '../navigation/types'
-import type { Dataset } from '../data/datasets'
 import { FORMAT_COLORS } from '../data/datasets'
 
 type DetailRoute = RouteProp<DatasetStackParamList, 'DatasetDetail'>
@@ -210,7 +209,7 @@ export function DatasetDetailScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Schema</Text>
         {schemaLoading && <ActivityIndicator size="small" color={brand.yellow} style={{ marginTop: 8 }} />}
         {schemaError && (
-          <View style={[styles.errorBox, { borderColor: colors.error }]}>
+          <View testID="error-card" style={[styles.errorBox, { borderColor: colors.error }]}>
             <Text style={[styles.errorText, { color: colors.error }]}>{schemaError}</Text>
             {dataset.source === 'trending' && (
               <Text style={[styles.errorHint, { color: colors.textSecondary }]}>
@@ -283,7 +282,7 @@ export function DatasetDetailScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Query</Text>
         <View style={[styles.editorContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.promptChar, { color: brand.yellow }]}>D</Text>
+          <Text style={[styles.promptChar, { color: colors.accentText }]}>D</Text>
           <View style={styles.editorWrapper}>
             <TextInput
               style={[styles.editorInput, { color: 'transparent' }]}

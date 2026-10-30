@@ -84,7 +84,7 @@ const METRIC_SQL_FN: Record<DistanceMetric, string> = {
 }
 
 export function VSSExplorerScreen() {
-  const { colors, isDark } = useTheme()
+  const { colors } = useTheme()
   const [isReady, setIsReady] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -152,6 +152,8 @@ CREATE INDEX idx_ip ON embeddings USING HNSW (vec) WITH (metric = 'ip');`
         dbRef.current = null
       }
     }
+    // Runs once on mount. runQuery is declared below, so it cannot be a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const buildQueryVector = useCallback((cluster: string): number[] => {
@@ -227,7 +229,7 @@ LIMIT ${k}`
   if (error) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
+        <View testID="error-card" style={styles.errorContainer}>
           <MaterialCommunityIcons name="alert-circle" size={48} color={colors.error} />
           <Text style={[styles.errorTitle, { color: colors.text }]}>VSS Error</Text>
           <Text style={[styles.errorDesc, { color: colors.textSecondary }]}>{error}</Text>

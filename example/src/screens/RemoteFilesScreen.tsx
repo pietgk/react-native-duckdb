@@ -52,7 +52,7 @@ function detectFileType(url: string): FileType | null {
 }
 
 export function RemoteFilesScreen() {
-  const { colors, isDark } = useTheme()
+  const { colors } = useTheme()
   const [url, setUrl] = useState('')
   const [fileType, setFileType] = useState<FileType>('parquet')
   const [query, setQuery] = useState('')
@@ -73,7 +73,7 @@ export function RemoteFilesScreen() {
       try {
         const db = HybridDuckDB.open(':memory:', {})
         dbRef.current = db
-        await db.execute('INSTALL httpfs; LOAD httpfs;')
+        await db.execute('LOAD httpfs')
         if (!cancelled) setIsExtLoading(false)
       } catch (e: any) {
         if (!cancelled) {
@@ -309,7 +309,6 @@ export function RemoteFilesScreen() {
             </View>
           </View>
         </View>
-        )}
         <TouchableOpacity
           style={[styles.runButton, { backgroundColor: ACCENT, opacity: isLoading || !query.trim() ? 0.6 : 1 }]}
           onPress={runQuery}
@@ -327,7 +326,7 @@ export function RemoteFilesScreen() {
 
       {/* Error */}
       {error && (
-        <View style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
+        <View testID="error-card" style={[styles.errorCard, { borderColor: colors.error + '40' }]}>
           <MaterialCommunityIcons name="alert-circle" size={20} color={colors.error} />
           <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           <TouchableOpacity onPress={runQuery} style={[styles.retryButton, { borderColor: colors.error }]}>

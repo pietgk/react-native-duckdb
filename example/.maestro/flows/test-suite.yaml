@@ -1,0 +1,22 @@
+appId: com.rnduckdbexample
+tags:
+  - network
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: tab-tests
+    timeout: 20000
+- tapOn:
+    id: tab-tests
+- tapOn:
+    id: run-all
+- extendedWaitUntil:
+    visible: "Running..."
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: "Running..."
+    timeout: 480000
+- assertVisible: "0 failed"
+- takeScreenshot: test-suite

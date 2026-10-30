@@ -1,0 +1,14 @@
+appId: com.rnduckdbexample
+---
+# Tapping the active tab twice returns to the Explorer list.
+- tapOn:
+    id: tab-explorer
+- waitForAnimationToEnd:
+    timeout: 1200
+- tapOn:
+    id: tab-explorer
+- tapOn: ${SCREEN}
+- waitForAnimationToEnd:
+    timeout: 2500
+- runFlow: assert-healthy.yaml
+- takeScreenshot: ${SHOT}

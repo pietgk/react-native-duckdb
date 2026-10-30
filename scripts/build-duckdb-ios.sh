@@ -17,9 +17,14 @@ echo "=== react-native-duckdb: Building DuckDB for iOS (min=${MIN_IOS}, jobs=${J
 # Step 1: Configure extensions
 echo "--- Configuring extensions ---"
 
-# Try to read extensions from Podfile.properties.json (Expo managed workflow)
+# Try to read extensions from Podfile.properties.json (Expo managed workflow).
+# RNDUCKDB_APP_IOS_DIR (the app's Podfile directory, passed by the podspec) is
+# checked first: the REPO_DIR-relative probes assume the package sits inside
+# the app tree, which is false for a file:/sibling checkout - node_modules
+# symlinks resolve to the physical package dir, so relative paths can't reach
+# the app from here.
 EXTENSIONS_FROM_PROPS=""
-for CANDIDATE in "${REPO_DIR}/../ios/Podfile.properties.json" "${REPO_DIR}/../../ios/Podfile.properties.json"; do
+for CANDIDATE in "${RNDUCKDB_APP_IOS_DIR:+${RNDUCKDB_APP_IOS_DIR}/Podfile.properties.json}" "${REPO_DIR}/../ios/Podfile.properties.json" "${REPO_DIR}/../../ios/Podfile.properties.json"; do
   if [ -f "$CANDIDATE" ]; then
     EXTENSIONS_FROM_PROPS=$(node -e "
       const p = JSON.parse(require('fs').readFileSync('$CANDIDATE', 'utf8'));
@@ -31,6 +36,10 @@ done
 
 if [ -n "$EXTENSIONS_FROM_PROPS" ]; then
   node "${SCRIPT_DIR}/configure-extensions.js" --duckdb-path "${DUCKDB_DIR}" --extensions "${EXTENSIONS_FROM_PROPS}"
+elif [ -n "${RNDUCKDB_APP_IOS_DIR:-}" ]; then
+  # Bare workflow: anchor package.json discovery at the app, not at cwd
+  # (during prepare_command, cwd is inside the package checkout)
+  node "${SCRIPT_DIR}/configure-extensions.js" --duckdb-path "${DUCKDB_DIR}" --app-root "${RNDUCKDB_APP_IOS_DIR}/.."
 else
   node "${SCRIPT_DIR}/configure-extensions.js" --duckdb-path "${DUCKDB_DIR}"
 fi
@@ -41,6 +50,18 @@ EXT_CONFIG="${DUCKDB_DIR}/extension/extension_config_local.cmake"
 if [ -f "$EXT_CONFIG" ] && grep -q "httpfs" "$EXT_CONFIG"; then
   NEEDS_HTTPFS=true
   echo "--- httpfs detected: will build OpenSSL + libcurl for each target ---"
+fi
+
+# Skip the build when nothing that affects the output has changed
+PACKAGE_DIR="${REPO_DIR}/package"
+BUILD_KEY_FILE="${PACKAGE_DIR}/DuckDB.xcframework.key"
+BUILD_KEY=$(
+  { git -C "${DUCKDB_DIR}" rev-parse HEAD; echo "${MIN_IOS}"; cat "${EXT_CONFIG}" "$0" "${SCRIPT_DIR}/build-openssl-curl.sh"; } |
+    shasum | cut -d' ' -f1
+)
+if [ -d "${PACKAGE_DIR}/DuckDB.xcframework" ] && [ "$(cat "$BUILD_KEY_FILE" 2>/dev/null)" = "$BUILD_KEY" ]; then
+  echo "=== DuckDB.xcframework is up to date ==="
+  exit 0
 fi
 
 # Invalidate cached builds if extension config changed
@@ -89,7 +110,7 @@ build_arch() {
   local HTTPFS_CMAKE_FLAGS=()
   if [ "$NEEDS_HTTPFS" = true ]; then
     echo "   Building OpenSSL + libcurl for ios-${MAPPED_ARCH}..."
-    "${SCRIPT_DIR}/build-openssl-curl.sh" ios "${MAPPED_ARCH}"
+    "${SCRIPT_DIR}/build-openssl-curl.sh" ios "${MAPPED_ARCH}" "${MIN_IOS}"
     HTTPFS_CMAKE_FLAGS=(
       -DOPENSSL_ROOT_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}"
       -DOPENSSL_INCLUDE_DIR="${REPO_DIR}/vendor/openssl/ios-${MAPPED_ARCH}/include"
@@ -121,10 +142,10 @@ build_arch() {
   local COMBINED="${FULL_BUILD_DIR}/libduckdb_combined.a"
   local ALL_LIBS=()
 
-  # Find all .a files produced by the build
+  # Find all .a files produced by the build, skipping the output of a previous run
   while IFS= read -r -d '' lib; do
     ALL_LIBS+=("${lib}")
-  done < <(find "${FULL_BUILD_DIR}" -name "*.a" -print0)
+  done < <(find "${FULL_BUILD_DIR}" -name "*.a" ! -name "libduckdb_combined.a" -print0)
 
   # Include vendor OpenSSL + libcurl static libs when httpfs is enabled
   if [ "$NEEDS_HTTPFS" = true ]; then
@@ -171,16 +192,8 @@ xcodebuild -create-xcframework \
 
 # Step 4: Copy xcframework into package/ so CocoaPods can find it
 # vendored_frameworks paths must be within the pod source tree
-PACKAGE_DIR="${REPO_DIR}/package"
 rm -rf "${PACKAGE_DIR}/DuckDB.xcframework"
 cp -R "${BUILD_DIR}/DuckDB.xcframework" "${PACKAGE_DIR}/DuckDB.xcframework"
-
-# Step 5: Write extension metadata for podspec to read
-EXT_META="${PACKAGE_DIR}/.duckdb-extensions.json"
-if [ "$NEEDS_HTTPFS" = true ]; then
-  echo '{"httpfs":true}' > "$EXT_META"
-else
-  echo '{}' > "$EXT_META"
-fi
+echo "$BUILD_KEY" > "$BUILD_KEY_FILE"
 
 echo "=== DuckDB.xcframework created at ${PACKAGE_DIR}/DuckDB.xcframework ==="

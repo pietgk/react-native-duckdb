@@ -23,7 +23,7 @@ The DuckDB engine version string.
 **Type:** `string` (readonly)
 
 ```ts
-console.log(HybridDuckDB.version) // "1.4.4"
+console.log(HybridDuckDB.version) // "1.4.5"
 ```
 
 ---
@@ -179,6 +179,8 @@ if (db.isOpen) {
 ### `close(options?)`
 
 Closes the database connection and releases resources. Safe to call multiple times.
+
+Queries still running on this connection are interrupted, and their promises reject. `close()` waits for them to stop. Streams that are already open keep working until they are closed.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -904,7 +906,7 @@ appender.appendRow([1, 'sensor_a', 23.5, true])
 
 ### `appendRows(rows)`
 
-Appends multiple rows at once.
+Appends multiple rows at once. Every row must have the same length. If one differs, this throws and appends nothing.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -958,7 +960,7 @@ appender.flush()
 
 ### `close()`
 
-Flushes remaining buffered rows and releases the appender's resources.
+Flushes remaining buffered rows and releases the appender's resources. Throws if that flush fails, for example on a constraint violation. The appender is released either way.
 
 **Returns:** `void`
 
@@ -1345,7 +1347,7 @@ type TransactionInfo = {
 | Field | Type | Description |
 |-------|------|-------------|
 | statementsExecuted | `number` | Number of statements executed before failure |
-| rolledBack | `boolean` | Whether the transaction was rolled back |
+| rolledBack | `boolean` | Whether the rollback succeeded. `false` means the `ROLLBACK` statement itself failed |
 | depth | `number` | Transaction nesting depth (always 0) |
 
 ---

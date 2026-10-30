@@ -18,7 +18,7 @@ export function QueryStatusBar({ executionTimeMs, rowCount, error }: Props) {
 
   if (error) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
+      <View testID="error-card" style={[styles.container, styles.errorContainer]}>
         <Text style={styles.errorText} numberOfLines={2}>
           {error}
         </Text>

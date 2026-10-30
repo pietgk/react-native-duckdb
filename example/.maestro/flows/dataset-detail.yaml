@@ -1,0 +1,19 @@
+appId: com.rnduckdbexample
+tags:
+  - network
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible: ".*by .*"
+    timeout: 20000
+- tapOn:
+    text: ".*by .*"
+    index: 0
+- extendedWaitUntil:
+    visible: ".*Preview.*"
+    timeout: 8000
+- waitForAnimationToEnd:
+    timeout: 20000
+- runFlow: ../shared/assert-healthy.yaml
+- takeScreenshot: dataset-detail

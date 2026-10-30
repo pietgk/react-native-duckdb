@@ -41,7 +41,7 @@ TestRegistry.registerTest(
 
       const vec = rows[0].vec as string
       // DuckDB returns ARRAY as a string like "[0.0, 0.0998334, ...]"
-      const values = vec.replace(/[\[\]]/g, '').split(',').map(Number)
+      const values = vec.replace(/[[\]]/g, '').split(',').map(Number)
       if (values.length !== DIMS) throw new Error(`Expected ${DIMS} dimensions, got ${values.length}`)
 
       // Verify first few values match our seed function
@@ -432,6 +432,11 @@ TestRegistry.registerTest(
         "CREATE INDEX idx_timing ON embeddings USING HNSW (vec) WITH (metric = 'cosine')"
       )
 
+      // Timing varies with device load, so the plan is what proves the index is used
+      const plan = JSON.stringify(db.executeSync(`EXPLAIN ${query}`).toRows())
+      if (!plan.includes('HNSW_INDEX_SCAN'))
+        throw new Error(`Expected the query to use the HNSW index, got: ${plan}`)
+
       // HNSW-accelerated query
       const hnswStart = Date.now()
       const hnswResult = db.executeSync(query)
@@ -444,12 +449,6 @@ TestRegistry.registerTest(
         throw new Error(`HNSW: expected 10 results, got ${hnswRows.length}`)
 
       const speedup = bruteMs / Math.max(hnswMs, 1)
-
-      // HNSW should be faster than brute-force
-      if (hnswMs > bruteMs)
-        throw new Error(
-          `HNSW (${hnswMs}ms) should be faster than brute-force (${bruteMs}ms)`
-        )
 
       console.debug('=== Brute-force vs HNSW (5000x384 vectors) ===')
       console.debug(`  Brute-force: ${bruteMs}ms`)

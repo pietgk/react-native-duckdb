@@ -6,7 +6,7 @@
   <a href="https://www.npmjs.com/package/react-native-duckdb"><img src="https://img.shields.io/npm/v/react-native-duckdb.svg" alt="npm version" /></a>
   <a href="https://github.com/pranshuchittora/react-native-duckdb/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg" alt="Platform" />
-  <img src="https://img.shields.io/badge/DuckDB-v1.4.4-FFF100.svg" alt="DuckDB Version" />
+  <img src="https://img.shields.io/badge/DuckDB-v1.4.5-FFF100.svg" alt="DuckDB Version" />
 </p>
 
 ---

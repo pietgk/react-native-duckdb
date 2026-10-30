@@ -8,26 +8,33 @@ void HybridPreparedStatement::ensureNotFinalized() {
   }
 }
 
-std::shared_ptr<HybridQueryResultSpec> HybridPreparedStatement::executeSync(
+// Tasks hold their own reference to the statement, so finalize() can run while they execute.
+static std::shared_ptr<HybridQueryResultSpec> runStatement(
+    duckdb::PreparedStatement& stmt,
     const std::optional<std::vector<DuckDBValue>>& params) {
-  ensureNotFinalized();
-
-  if (params && !params->empty()) {
-    auto values = toValues(*params);
-    auto result = _stmt->Execute(values, false);
-    if (result->HasError()) {
-      throw std::runtime_error("[DuckDB] " + result->GetError());
-    }
-    return std::make_shared<HybridQueryResult>(std::move(result));
-  }
-
-  // No params — execute with empty values
-  duckdb::vector<duckdb::Value> empty;
-  auto result = _stmt->Execute(empty, false);
+  auto values = params ? toValues(*params) : duckdb::vector<duckdb::Value>();
+  auto result = stmt.Execute(values, false);
   if (result->HasError()) {
     throw std::runtime_error("[DuckDB] " + result->GetError());
   }
   return std::make_shared<HybridQueryResult>(std::move(result));
+}
+
+static std::shared_ptr<HybridQueryResultSpec> runStatementNamed(
+    duckdb::PreparedStatement& stmt,
+    const std::unordered_map<std::string, DuckDBValue>& params) {
+  auto namedValues = toNamedValues(params);
+  auto result = stmt.Execute(namedValues, false);
+  if (result->HasError()) {
+    throw std::runtime_error("[DuckDB] " + result->GetError());
+  }
+  return std::make_shared<HybridQueryResult>(std::move(result));
+}
+
+std::shared_ptr<HybridQueryResultSpec> HybridPreparedStatement::executeSync(
+    const std::optional<std::vector<DuckDBValue>>& params) {
+  ensureNotFinalized();
+  return runStatement(*_stmt, params);
 }
 
 std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridPreparedStatement::execute(
@@ -35,20 +42,15 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridPreparedS
   ensureNotFinalized();
   auto copiedParams = copyParamsForBackground(params);
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [this, copiedParams]() -> std::shared_ptr<HybridQueryResultSpec> {
-      return this->executeSync(copiedParams);
+    [stmt = _stmt, copiedParams]() -> std::shared_ptr<HybridQueryResultSpec> {
+      return runStatement(*stmt, copiedParams);
     });
 }
 
 std::shared_ptr<HybridQueryResultSpec> HybridPreparedStatement::executeSyncNamed(
     const std::unordered_map<std::string, DuckDBValue>& params) {
   ensureNotFinalized();
-  auto namedValues = toNamedValues(params);
-  auto result = _stmt->Execute(namedValues, false);
-  if (result->HasError()) {
-    throw std::runtime_error("[DuckDB] " + result->GetError());
-  }
-  return std::make_shared<HybridQueryResult>(std::move(result));
+  return runStatementNamed(*_stmt, params);
 }
 
 std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridPreparedStatement::executeNamed(
@@ -56,8 +58,8 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridPreparedS
   ensureNotFinalized();
   auto copiedParams = copyNamedParamsForBackground(params);
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [this, copiedParams = std::move(copiedParams)]() -> std::shared_ptr<HybridQueryResultSpec> {
-      return this->executeSyncNamed(copiedParams);
+    [stmt = _stmt, copiedParams = std::move(copiedParams)]() -> std::shared_ptr<HybridQueryResultSpec> {
+      return runStatementNamed(*stmt, copiedParams);
     });
 }
 

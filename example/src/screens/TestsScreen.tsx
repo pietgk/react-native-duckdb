@@ -6,8 +6,6 @@ import type { TestResult } from '../testing/types'
 import { TestCategoryCard } from '../components/TestCategoryCard'
 import { useTheme } from '../theme'
 
-const BENCHMARK_CATEGORY = 'Benchmarks'
-
 export function TestsScreen() {
   const { colors, brand } = useTheme()
   const [results, setResults] = useState<Map<string, TestResult[]>>(new Map())
@@ -17,31 +15,11 @@ export function TestsScreen() {
 
   const categories = useMemo(() => TestRegistry.getCategories(), [])
 
-  const totalPass = useMemo(() => {
-    let count = 0
-    for (const categoryResults of results.values()) {
-      count += categoryResults.filter((r) => r.status === 'pass').length
-    }
-    return count
-  }, [results])
-
-  const totalFail = useMemo(() => {
-    let count = 0
-    for (const categoryResults of results.values()) {
-      count += categoryResults.filter((r) => r.status === 'fail').length
-    }
-    return count
-  }, [results])
-
-  const totalDuration = useMemo(() => {
-    let total = 0
-    for (const categoryResults of results.values()) {
-      for (const r of categoryResults) {
-        if (r.durationMs) total += r.durationMs
-      }
-    }
-    return total
-  }, [results])
+  const {
+    passed: totalPass,
+    failed: totalFail,
+    durationMs: totalDuration,
+  } = useMemo(() => TestRunner.summarize(results), [results])
 
   const runCategory = useCallback(async (category: string) => {
     setRunningCategories((prev) => new Set(prev).add(category))
@@ -60,12 +38,10 @@ export function TestsScreen() {
 
   const runAll = useCallback(async () => {
     setIsRunningAll(true)
-    const allResults = new Map<string, TestResult[]>()
-    for (const category of TestRegistry.getCategories()) {
-      if (!includeBenchmarks && category === BENCHMARK_CATEGORY) continue
-      allResults.set(category, await TestRunner.runCategory(category))
-      setResults(new Map(allResults))
-    }
+    const allResults = await TestRunner.runAll({
+      includeBenchmarks,
+      onCategoryDone: (partial) => setResults(new Map(partial)),
+    })
     setResults(allResults)
     setIsRunningAll(false)
   }, [includeBenchmarks])
@@ -84,6 +60,7 @@ export function TestsScreen() {
         <View style={styles.topRow}>
           <Text style={[styles.title, { color: colors.text }]}>Test Suite</Text>
           <TouchableOpacity
+            testID="run-all"
             onPress={runAll}
             style={[styles.runAllButton, { backgroundColor: brand.yellow }, isRunningAll && styles.runAllDisabled]}
             disabled={isRunningAll}>
@@ -104,7 +81,7 @@ export function TestsScreen() {
             <Text style={[styles.benchmarkLabel, { color: colors.textSecondary }]}>Benchmarks</Text>
           </View>
           {hasResults && (
-            <View style={styles.summary}>
+            <View testID="test-summary" style={styles.summary}>
               <Text style={[styles.passText, { color: brand.green }]}>{totalPass} passed</Text>
               <Text style={[styles.failText, { color: colors.error }]}>{totalFail} failed</Text>
               <Text style={[styles.durationText, { color: colors.textSecondary }]}>{totalDuration}ms</Text>

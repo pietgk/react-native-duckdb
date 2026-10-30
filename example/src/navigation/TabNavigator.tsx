@@ -34,6 +34,7 @@ export function TabNavigator() {
         name="Datasets"
         component={DatasetStack}
         options={{
+          tabBarButtonTestID: 'tab-datasets',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="database-outline" color={color} size={size} />
           ),
@@ -43,6 +44,7 @@ export function TabNavigator() {
         name="Explorer"
         component={ExplorerStack}
         options={{
+          tabBarButtonTestID: 'tab-explorer',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="compass-outline" color={color} size={size} />
           ),
@@ -52,6 +54,7 @@ export function TabNavigator() {
         name="Query"
         component={QueryStack}
         options={{
+          tabBarButtonTestID: 'tab-query',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="code-tags" color={color} size={size} />
           ),
@@ -61,6 +64,7 @@ export function TabNavigator() {
         name="Tests"
         component={TestsScreen}
         options={{
+          tabBarButtonTestID: 'tab-tests',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="check-circle-outline" color={color} size={size} />
           ),
@@ -70,6 +74,7 @@ export function TabNavigator() {
         name="About"
         component={AboutScreen}
         options={{
+          tabBarButtonTestID: 'tab-about',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="information-outline" color={color} size={size} />
           ),

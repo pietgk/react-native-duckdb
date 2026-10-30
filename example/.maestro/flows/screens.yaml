@@ -1,0 +1,60 @@
+appId: com.rnduckdbexample
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: tab-explorer
+    timeout: 20000
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Vector Search.*"
+      SHOT: vector-search
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*File Queries.*"
+      SHOT: file-queries
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Streaming Demo.*"
+      SHOT: streaming-demo
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Appender Bench.*"
+      SHOT: appender-bench
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Type Inspector.*"
+      SHOT: type-inspector
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Attach Database.*"
+      SHOT: attach-database
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Full-Text Search.*"
+      SHOT: fts
+- runFlow:
+    file: ../shared/open-explorer-screen.yaml
+    env:
+      SCREEN: ".*Remote Files.*"
+      SHOT: remote-files-open
+- tapOn:
+    id: tab-query
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow: ../shared/assert-healthy.yaml
+- takeScreenshot: query
+- tapOn:
+    id: tab-about
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow: ../shared/assert-healthy.yaml
+- takeScreenshot: about

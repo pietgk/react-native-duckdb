@@ -270,7 +270,7 @@ class DuckDBError extends Error {
 ```ts
 type TransactionInfo = {
   statementsExecuted: number  // how many statements ran before failure
-  rolledBack: boolean         // whether the transaction was rolled back
+  rolledBack: boolean         // false if the ROLLBACK statement itself failed
   depth: number               // nesting depth (always 0, nested not supported)
 }
 ```
@@ -313,4 +313,5 @@ try {
 - **Finalize prepared statements before closing the database.** Prepared statements hold native resources. While `executeTransaction()` auto-finalizes statements created within it, manually created statements via `db.prepare()` must be finalized with `stmt.finalize()` before `db.close()`.
 - **Nested transactions throw.** DuckDB does not support `SAVEPOINT`. Restructure nested transaction patterns into a single level.
 - **Child connections block close().** Call `db.closeConnections()` or use `db.close({ force: true })` before closing the primary database.
+- **close() interrupts running queries.** Pending `execute()` promises on that connection reject. Open streams keep working until they are closed.
 - **Batch commands share a transaction.** If any command in `executeBatchSync()` / `executeBatch()` fails, all preceding commands in the batch are rolled back.
