@@ -394,7 +394,7 @@ const appender = db.createAppender('measurements', { flushEvery: 10000 })
 
 ### `cancel()`
 
-Cancels any currently executing query on this connection.
+Cancels queries on this connection that have been started and not finished, including one that is still queued. Their promises reject. A query that finishes before the cancel reaches it completes normally.
 
 **Returns:** `void`
 

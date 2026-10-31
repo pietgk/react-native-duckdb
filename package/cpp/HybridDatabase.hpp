@@ -157,8 +157,8 @@ public:
       const std::vector<BatchCommand>& commands) override;
 
 private:
-  // Held by background tasks while they use _con, so close() can interrupt
-  // them and wait before releasing the connection.
+  // Held from when a background task is scheduled until it ends, so close() and
+  // cancel() can reach work that has not started yet.
   class WorkScope {
   public:
     explicit WorkScope(HybridDatabase& db);
@@ -171,6 +171,7 @@ private:
   void ensureOpen();
   void ensurePrimary(const char* method);
   void shutdown();
+  void interruptWork(std::unique_lock<std::mutex>& lock, uint64_t startedBefore);
 
   std::unique_ptr<duckdb::QueryResult> executeWithProgress(
       const std::string& sql,
@@ -192,7 +193,8 @@ private:
   std::optional<std::function<void(double)>> _progressCallback;
   std::mutex _workMutex;
   std::condition_variable _workDone;
-  size_t _activeWork = 0;
+  uint64_t _workStarted = 0;
+  uint64_t _workFinished = 0;
 
   static std::atomic<uint64_t> _connectionIdCounter;
   static constexpr auto TAG = "Database";

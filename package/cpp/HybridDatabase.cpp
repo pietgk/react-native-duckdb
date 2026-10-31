@@ -3,6 +3,7 @@
 #include "HybridStreamingResult.hpp"
 #include "HybridAppender.hpp"
 #include "utils.hpp"
+#include <NitroModules/ThreadPool.hpp>
 #include <chrono>
 
 namespace margelo::nitro::rnduckdb {
@@ -38,31 +39,35 @@ void HybridDatabase::close(const std::optional<CloseOptions>& options) {
 }
 
 void HybridDatabase::shutdown() {
-  // DuckDB clears the interrupt flag when a query starts, so repeat it in case
-  // a task was still about to begin.
-  constexpr auto interruptInterval = std::chrono::milliseconds(20);
-
   std::unique_lock<std::mutex> lock(_workMutex);
   _isOpen = false;
-  while (_activeWork > 0) {
-    _con->Interrupt();
-    _workDone.wait_for(lock, interruptInterval);
-  }
+  interruptWork(lock, _workStarted);
   _con.reset();
   if (_isPrimary) {
     _db.reset();
   }
 }
 
+void HybridDatabase::interruptWork(std::unique_lock<std::mutex>& lock, uint64_t startedBefore) {
+  // DuckDB clears the interrupt flag when a query starts, so repeat it until the
+  // work has stopped. A single interrupt is lost if the query has not started.
+  constexpr auto interruptInterval = std::chrono::milliseconds(5);
+
+  while (_con && _workFinished < startedBefore) {
+    _con->Interrupt();
+    _workDone.wait_for(lock, interruptInterval);
+  }
+}
+
 HybridDatabase::WorkScope::WorkScope(HybridDatabase& db) : _db(db) {
   std::lock_guard<std::mutex> lock(_db._workMutex);
   _db.ensureOpen();
-  _db._activeWork++;
+  _db._workStarted++;
 }
 
 HybridDatabase::WorkScope::~WorkScope() {
   std::lock_guard<std::mutex> lock(_db._workMutex);
-  _db._activeWork--;
+  _db._workFinished++;
   _db._workDone.notify_all();
 }
 
@@ -133,16 +138,16 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridDatabase:
 
   if (onProgress) {
     return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-      [self = shared_cast<HybridDatabase>(), sql, copiedParams, onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
-        WorkScope work(*self);
+      [self = shared_cast<HybridDatabase>(), work = std::make_shared<WorkScope>(*this), sql, copiedParams, onProgress]() mutable -> std::shared_ptr<HybridQueryResultSpec> {
+        auto scope = std::move(work);
         auto result = self->executeWithProgress(sql, copiedParams, onProgress);
         return std::make_shared<HybridQueryResult>(std::move(result));
       });
   }
 
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [self = shared_cast<HybridDatabase>(), sql, copiedParams]() -> std::shared_ptr<HybridQueryResultSpec> {
-      WorkScope work(*self);
+    [self = shared_cast<HybridDatabase>(), work = std::make_shared<WorkScope>(*this), sql, copiedParams]() mutable -> std::shared_ptr<HybridQueryResultSpec> {
+      auto scope = std::move(work);
       return self->executeSync(sql, copiedParams);
     });
 }
@@ -162,6 +167,18 @@ std::shared_ptr<HybridPreparedStatementSpec> HybridDatabase::prepare(
 void HybridDatabase::cancel() {
   ensureOpen();
   _con->Interrupt();
+
+  uint64_t startedBefore;
+  {
+    std::lock_guard<std::mutex> lock(_workMutex);
+    startedBefore = _workStarted;
+    if (_workFinished >= startedBefore) return;
+  }
+
+  ThreadPool::shared().run([self = shared_cast<HybridDatabase>(), startedBefore]() {
+    std::unique_lock<std::mutex> lock(self->_workMutex);
+    self->interruptWork(lock, startedBefore);
+  });
 }
 
 // --- Profiling ---
@@ -342,16 +359,16 @@ std::shared_ptr<Promise<std::shared_ptr<HybridQueryResultSpec>>> HybridDatabase:
 
   if (onProgress) {
     return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-      [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridQueryResultSpec> {
-        WorkScope work(*self);
+      [self = shared_cast<HybridDatabase>(), work = std::make_shared<WorkScope>(*this), sql, copiedParams = std::move(copiedParams), onProgress]() mutable -> std::shared_ptr<HybridQueryResultSpec> {
+        auto scope = std::move(work);
         auto result = self->executeNamedWithProgress(sql, copiedParams, onProgress);
         return std::make_shared<HybridQueryResult>(std::move(result));
       });
   }
 
   return Promise<std::shared_ptr<HybridQueryResultSpec>>::async(
-    [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams)]() -> std::shared_ptr<HybridQueryResultSpec> {
-      WorkScope work(*self);
+    [self = shared_cast<HybridDatabase>(), work = std::make_shared<WorkScope>(*this), sql, copiedParams = std::move(copiedParams)]() mutable -> std::shared_ptr<HybridQueryResultSpec> {
+      auto scope = std::move(work);
       return self->executeSyncNamed(sql, copiedParams);
     });
 }
@@ -703,8 +720,8 @@ std::shared_ptr<Promise<BatchResult>> HybridDatabase::executeBatch(
   }
 
   return Promise<BatchResult>::async(
-    [self = shared_cast<HybridDatabase>(), copiedCommands = std::move(copiedCommands)]() -> BatchResult {
-      WorkScope work(*self);
+    [self = shared_cast<HybridDatabase>(), work = std::make_shared<WorkScope>(*this), copiedCommands = std::move(copiedCommands)]() mutable -> BatchResult {
+      auto scope = std::move(work);
       return self->executeBatchSync(copiedCommands);
     });
 }
