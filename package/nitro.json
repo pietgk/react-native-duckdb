@@ -1,16 +1,29 @@
 {
-  "cxxNamespace": ["rnduckdb"],
+  "cxxNamespace": [
+    "rnduckdb"
+  ],
   "ios": {
     "iosModuleName": "RNDuckDB"
   },
   "android": {
-    "androidNamespace": ["rnduckdb"],
+    "androidNamespace": [
+      "rnduckdb"
+    ],
     "androidCxxLibName": "RNDuckDB"
   },
   "autolinking": {
     "DuckDB": {
-      "cpp": "HybridDuckDB"
+      "all": {
+        "language": "c++",
+        "implementationClassName": "HybridDuckDB"
+      }
     }
   },
-  "ignorePaths": ["node_modules", "example", "lib", "vendor", "duckdb"]
+  "ignorePaths": [
+    "node_modules",
+    "example",
+    "lib",
+    "vendor",
+    "duckdb"
+  ]
 }

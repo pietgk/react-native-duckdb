@@ -20,25 +20,30 @@
 namespace margelo::nitro::rnduckdb {
 
 int initialize(JavaVM* vm) {
+  return facebook::jni::initialize(vm, []() {
+    ::margelo::nitro::rnduckdb::registerAllNatives();
+  });
+}
+
+
+
+void registerAllNatives() {
   using namespace margelo::nitro;
   using namespace margelo::nitro::rnduckdb;
-  using namespace facebook;
 
-  return facebook::jni::initialize(vm, [] {
-    // Register native JNI methods
-    
+  // Register native JNI methods
+  
 
-    // Register Nitro Hybrid Objects
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "DuckDB",
-      []() -> std::shared_ptr<HybridObject> {
-        static_assert(std::is_default_constructible_v<HybridDuckDB>,
-                      "The HybridObject \"HybridDuckDB\" is not default-constructible! "
-                      "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
-        return std::make_shared<HybridDuckDB>();
-      }
-    );
-  });
+  // Register Nitro Hybrid Objects
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "DuckDB",
+    []() -> std::shared_ptr<HybridObject> {
+      static_assert(std::is_default_constructible_v<HybridDuckDB>,
+                    "The HybridObject \"HybridDuckDB\" is not default-constructible! "
+                    "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
+      return std::make_shared<HybridDuckDB>();
+    }
+  );
 }
 
 } // namespace margelo::nitro::rnduckdb
