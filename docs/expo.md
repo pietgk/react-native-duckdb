@@ -257,7 +257,7 @@ The plugin resolves from the app's `node_modules`. Ensure `react-native-duckdb` 
 
 ```bash
 # In your app directory. Use the current release from the installation guide
-npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v2.0.0/pietgk-react-native-duckdb-2.0.0.tgz
 ```
 
 ### Plugin not found / ERR_PACKAGE_PATH_NOT_EXPORTED

@@ -10,13 +10,13 @@ Install the tarball attached to a [GitHub Release](https://github.com/pietgk/rea
 
 ```bash
 # npm
-npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v2.0.0/pietgk-react-native-duckdb-2.0.0.tgz react-native-nitro-modules
 
 # yarn
-yarn add https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
+yarn add https://github.com/pietgk/react-native-duckdb/releases/download/v2.0.0/pietgk-react-native-duckdb-2.0.0.tgz react-native-nitro-modules
 
 # bun
-bun add https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
+bun add https://github.com/pietgk/react-native-duckdb/releases/download/v2.0.0/pietgk-react-native-duckdb-2.0.0.tgz react-native-nitro-modules
 ```
 
 Then install iOS pods:
