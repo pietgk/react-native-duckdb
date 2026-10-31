@@ -1,4 +1,5 @@
 import { TestRegistry } from '../testing/TestRegistry'
+import { Platform } from 'react-native'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const CATEGORY = 'Robustness'
@@ -238,6 +239,21 @@ TestRegistry.registerTest(CATEGORY, 'Many open connections do not exhaust the JS
     }
     if (garbage.length !== 1) throw new Error('Unreachable')
     connections.forEach((connection) => connection.close())
+  } finally {
+    db.close()
+  }
+})
+
+// Network tests only run nightly, so check here that HTTPS has roots to verify against.
+TestRegistry.registerTest(CATEGORY, 'Android has a CA bundle for HTTPS', async () => {
+  if (Platform.OS !== 'android') return
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    const setting = db.executeSync("SELECT current_setting('ca_cert_file') AS path").toRows()[0]
+    const path = String(setting.path)
+    if (!path.endsWith('.pem')) throw new Error(`Expected a CA bundle, got: ${path}`)
+    const rows = db.executeSync(`SELECT size FROM read_blob('${path}')`).toRows()
+    if (Number(rows[0].size) < 10000) throw new Error(`CA bundle too small: ${rows[0].size} bytes`)
   } finally {
     db.close()
   }

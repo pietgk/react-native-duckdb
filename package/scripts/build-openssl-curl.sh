@@ -15,7 +15,7 @@ VENDOR_DIR="${PACKAGE_DIR}/vendor"
 SRC_DIR="${VENDOR_DIR}/src"
 
 OPENSSL_VERSION="3.4.1"
-CURL_VERSION="8.12.1"
+CURL_VERSION="8.23.0"
 
 OPENSSL_URL="https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz"
 CURL_URL="https://curl.se/download/curl-${CURL_VERSION}.tar.gz"
@@ -211,12 +211,16 @@ build_curl() {
     -DCMAKE_INSTALL_PREFIX="${CURL_OUT}"
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_C_FLAGS="-fvisibility=hidden"
+    # Otherwise curl compiles in a CA path found on the build machine
+    -DCURL_CA_BUNDLE=none
+    -DCURL_CA_PATH=none
   )
 
   case "$TARGET" in
     ios-arm64)
       CMAKE_ARGS+=(
         -DCMAKE_SYSTEM_NAME=iOS
+        -DUSE_APPLE_SECTRUST=ON
         -DCMAKE_OSX_SYSROOT="$(xcrun --sdk iphoneos --show-sdk-path)"
         -DCMAKE_OSX_ARCHITECTURES=arm64
         -DCMAKE_OSX_DEPLOYMENT_TARGET="${MIN_IOS}"
@@ -225,6 +229,7 @@ build_curl() {
     ios-simulator-arm64)
       CMAKE_ARGS+=(
         -DCMAKE_SYSTEM_NAME=iOS
+        -DUSE_APPLE_SECTRUST=ON
         -DCMAKE_OSX_SYSROOT="$(xcrun --sdk iphonesimulator --show-sdk-path)"
         -DCMAKE_OSX_ARCHITECTURES=arm64
         -DCMAKE_OSX_DEPLOYMENT_TARGET="${MIN_IOS}"
