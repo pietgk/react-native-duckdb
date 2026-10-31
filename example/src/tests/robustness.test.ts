@@ -243,6 +243,29 @@ TestRegistry.registerTest(CATEGORY, 'Many open connections do not exhaust the JS
   }
 })
 
+// DuckDB clears its interrupt flag when a query starts, so a cancel that arrives
+// while the query is still queued must not be lost.
+TestRegistry.registerTest(CATEGORY, 'cancel right after execute stops the query', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    for (let i = 0; i < 20; i++) {
+      const query = db.execute(SLOW_QUERY)
+      db.cancel()
+      await query.then(
+        () => {
+          throw new Error(`Attempt ${i}: expected the query to be cancelled`)
+        },
+        (e) => {
+          if (!/interrupt/i.test(String(e))) throw e
+        }
+      )
+    }
+    db.executeSync('SELECT 1')
+  } finally {
+    db.close()
+  }
+})
+
 // The stream can finish on its worker thread before start() returns to JS, so
 // this needs many attempts to hit the window where it resolves too early.
 TestRegistry.registerTest(CATEGORY, 'start resolves after every chunk is delivered', async () => {

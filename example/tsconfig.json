@@ -1,11 +1,17 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json",
-  "include": ["src", "index.js", "../package/src"],
+  "extends": "expo/tsconfig.base",
+  "include": [
+    "src",
+    "index.js",
+    "../package/src"
+  ],
   "compilerOptions": {
-    "lib": ["ESNext"],
     "baseUrl": ".",
     "paths": {
-      "@pietgk/react-native-duckdb": ["../package/src"]
-    }
+      "@pietgk/react-native-duckdb": [
+        "../package/src"
+      ]
+    },
+    "strict": true
   }
 }

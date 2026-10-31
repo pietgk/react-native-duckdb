@@ -10,7 +10,7 @@ import {
   Clipboard,
 } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useRoute } from '@react-navigation/native'
 import type { RouteProp } from '@react-navigation/native'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
@@ -20,6 +20,7 @@ import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
 import type { DatasetStackParamList } from '../navigation/types'
 import { FORMAT_COLORS } from '../data/datasets'
+import { monoFont } from '../theme/fonts'
 
 type DetailRoute = RouteProp<DatasetStackParamList, 'DatasetDetail'>
 
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   description: { fontSize: 14, lineHeight: 20, marginTop: 6 },
   pathText: {
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     marginTop: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
   schemaCell: {
     paddingHorizontal: 10,
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   schemaCellName: { flex: 2, fontWeight: '600' },
   schemaCellType: { flex: 2 },
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
   errorBox: { borderWidth: 1, borderRadius: 6, padding: 12, marginTop: 4 },
   errorText: { fontSize: 13, fontWeight: '600' },
   errorHint: { fontSize: 12, fontStyle: 'italic', marginTop: 6 },
-  errorSql: { fontSize: 11, fontFamily: 'monospace', marginTop: 6 },
+  errorSql: { fontSize: 11, fontFamily: monoFont, marginTop: 6 },
   queryChips: { marginBottom: 4 },
   queryChip: {
     paddingHorizontal: 14,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   promptChar: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
     fontWeight: '700',
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   editorInput: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
     paddingHorizontal: 10,

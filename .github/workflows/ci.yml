@@ -43,23 +43,23 @@ jobs:
             package/DuckDB.xcframework
             package/DuckDB.xcframework.key
           key: duckdb-ios-${{ hashFiles('example/package.json', 'package/duckdb.json', 'package/scripts/*') }}
-      - name: Install pods
-        working-directory: example/ios
-        run: pod install
+      - name: Generate native project
+        working-directory: example
+        run: npx expo prebuild --platform ios
       - name: Boot simulator
         run: xcrun simctl bootstatus "iPhone 17" -b
       - name: Build app
         working-directory: example/ios
         run: >
-          xcodebuild -workspace RNDuckDBExample.xcworkspace -scheme RNDuckDBExample
+          xcodebuild -workspace DuckDBReference.xcworkspace -scheme DuckDBReference
           -configuration Debug -destination "platform=iOS Simulator,name=iPhone 17"
           -derivedDataPath build build
       - name: Install app
-        run: xcrun simctl install booted example/ios/build/Build/Products/Debug-iphonesimulator/RNDuckDBExample.app
+        run: xcrun simctl install booted example/ios/build/Build/Products/Debug-iphonesimulator/DuckDBReference.app
       - name: Run tests
         run: scripts/run-device-tests.sh ios
         env:
-          MIN_PASSED: 157
+          MIN_PASSED: 158
           RESULT_FILE: test-results-ios.json
       - uses: actions/upload-artifact@v7
         if: always()
@@ -96,6 +96,9 @@ jobs:
           path: package/vendor
           key: vendor-android-${{ hashFiles('package/scripts/build-openssl-curl.sh') }}
       - run: bun install --frozen-lockfile
+      - name: Generate native project
+        working-directory: example
+        run: npx expo prebuild --platform android --no-install
       - name: Build app
         working-directory: example/android
         run: ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 --console=plain
@@ -107,7 +110,7 @@ jobs:
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          MIN_PASSED: 157
+          MIN_PASSED: 158
           RESULT_FILE: test-results-android.json
         with:
           api-level: 36

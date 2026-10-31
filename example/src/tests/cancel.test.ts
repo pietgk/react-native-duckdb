@@ -1,11 +1,14 @@
 import { TestRegistry } from '../testing/TestRegistry'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
+// Cannot finish on its own, so these tests can only pass if cancel() works. A
+// shorter query can end first when a busy JS thread delays the timer.
+const SLOW_QUERY = 'SELECT sum(i) AS total FROM range(500000000000) t(i)'
+
 TestRegistry.registerTest('Query Cancellation', 'Cancel running async query', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    // Use a very heavy cross join that cannot complete quickly
-    const promise = db.execute('SELECT count(*) FROM generate_series(1, 10000000) t1, generate_series(1, 100) t2')
+    const promise = db.execute(SLOW_QUERY)
     // Small delay to ensure query has started on native thread
     await new Promise(resolve => setTimeout(resolve, 10))
     db.cancel()
@@ -41,7 +44,7 @@ TestRegistry.registerTest('Query Cancellation', 'Cancel when idle — no-op', as
 TestRegistry.registerTest('Query Cancellation', 'Connection reusable after cancel', async () => {
   const db = HybridDuckDB.open(':memory:', {})
   try {
-    const promise = db.execute('SELECT count(*) FROM generate_series(1, 10000000) t1, generate_series(1, 100) t2')
+    const promise = db.execute(SLOW_QUERY)
     await new Promise(resolve => setTimeout(resolve, 10))
     db.cancel()
     try {

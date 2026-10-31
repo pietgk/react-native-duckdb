@@ -7,6 +7,7 @@ import {
 } from 'react-native'
 import { FlashList, type ListRenderItem } from '@shopify/flash-list'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 interface Props {
   columns: string[]
@@ -119,11 +120,11 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 12,
     fontWeight: '700',
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   cellText: {
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   nullText: {
     fontStyle: 'italic',

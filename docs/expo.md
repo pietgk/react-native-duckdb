@@ -4,6 +4,19 @@ This guide covers the react-native-duckdb Expo config plugin -- how it works int
 
 For bare React Native projects (no Expo), see [bare-workflow.md](bare-workflow.md).
 
+
+## Requirements
+
+Tested on Expo SDK 58 with React Native 0.88 and Nitro Modules 0.37. SDK 57 or later is required.
+
+Use a development build, not Expo Go, because this package contains native code. Generate the native projects with `npx expo prebuild` or `npx expo run:ios`.
+
+### EAS Build
+
+The build compiles DuckDB from source, which takes about 10 minutes with all extensions, and fetches it with git. Install from the [GitHub Release URL](bare-workflow.md#installation) so that EAS needs no token. The GitHub Packages route needs a token stored as an EAS secret.
+
+EAS builds have not been tested yet. The `sdk-58` image uses Xcode 27.1, which is newer than the Xcode this package is tested on.
+
 ## Quick Start
 
 Add the plugin to your `app.json` (or `app.config.js`):

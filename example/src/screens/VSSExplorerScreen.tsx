@@ -12,7 +12,8 @@ import { useTheme } from '../theme'
 import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import { monoFont } from '../theme/fonts'
 
 const NUM_VECTORS = 200
 const DIMS = 128
@@ -607,7 +608,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   metricFormula: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -677,7 +678,7 @@ const styles = StyleSheet.create({
   distanceValue: {
     width: 60,
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     textAlign: 'right',
   },
   statusBarWrap: {

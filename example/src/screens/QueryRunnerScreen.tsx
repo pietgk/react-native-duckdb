@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
@@ -27,6 +27,7 @@ import {
 } from '../db/queryStore'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { QueryStackParamList } from '../navigation/types'
+import { monoFont } from '../theme/fonts'
 
 type Props = NativeStackScreenProps<QueryStackParamList, 'QueryRunner'>
 
@@ -409,7 +410,7 @@ const styles = StyleSheet.create({
   },
   dropdownSql: {
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     marginTop: 2,
   },
   body: {
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   promptChar: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
     fontWeight: '700',
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   editor: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
     paddingHorizontal: 12,
@@ -515,7 +516,7 @@ const styles = StyleSheet.create({
   },
   exampleSql: {
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     marginTop: 2,
   },
   statusArea: {
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   resultArea: {
     marginTop: 12,
@@ -559,7 +560,7 @@ const styles = StyleSheet.create({
     maxHeight: 400,
   },
   jsonText: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 11,
     lineHeight: 16,
   },

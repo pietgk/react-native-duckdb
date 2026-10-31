@@ -68,8 +68,6 @@ case "$PLATFORM" in
   ios)
     TARGET="${DEVICE:-booted}"
     SIMULATOR_ID="${DEVICE:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F-]{36}' | head -1)}"
-    # fmt 11.0.2 in react-native 0.82 does not compile on Xcode 26. See example/ios/Podfile.
-    ruby -i -0pe 'sub(/(react_native_post_install\(.*?\n\s*\)\n)/m) { "#{$1}    installer.pods_project.targets.select { |t| t.name == \"fmt\" }.each { |t| t.build_configurations.each { |c| c.build_settings[\"CLANG_CXX_LANGUAGE_STANDARD\"] = \"c++17\" } }\n" }' "${APP_DIR}/ios/Podfile"
     (cd "${APP_DIR}/ios" && pod install)
     (cd "${APP_DIR}/ios" && xcodebuild -workspace SmokeApp.xcworkspace -scheme SmokeApp \
       -configuration Debug -destination "platform=iOS Simulator,id=${SIMULATOR_ID}" \

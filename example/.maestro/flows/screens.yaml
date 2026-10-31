@@ -1,4 +1,4 @@
-appId: com.rnduckdbexample
+appId: dev.pietgk.duckdbreference
 ---
 - launchApp:
     stopApp: true

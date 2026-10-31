@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import type { IconName } from '../theme/icons'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useTheme } from '../theme'
@@ -10,7 +11,7 @@ type NavProp = NativeStackNavigationProp<ExplorerStackParamList, 'ExplorerHome'>
 
 interface FeatureCard {
   title: string
-  icon: string
+  icon: IconName
   accent: string
   description: string
   screen: keyof ExplorerStackParamList

@@ -299,7 +299,8 @@ M0 to M3 are merged to `main` on the fork through [PR #1](https://github.com/pie
 | M1 Safety net | Done | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. `main` requires `checks`, `ios` and `android` |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
 | M3 Packaging | Done | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. `v1.0.0` released |
-| M4 onward | Not started | |
+| M4 Expo SDK 58 | On branch `m4-expo` | Example converted: native projects are generated from `app.json`. Suite passes on both platforms. EAS not tried |
+| M5 onward | Not started | |
 
 Verified on the final code:
 
@@ -329,6 +330,14 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 
 `v1.0.0` verified from the published asset: anonymous download, attestation passes and matches the downloaded file, and a new iOS app built from the URL with no credentials passes the smoke test. GitHub Packages was published to, but installing from it with a token has not been tried. The package came out public because it is linked to this public repository.
 
+### Expo decisions
+
+- The spike passed, so there was no need for the SDK 57 fallback or a nightly: stable Nitro 0.37.1 works on React Native 0.88.1 and SDK 58 with precompiled React Native on iOS. Nitro 0.37 needs React Native 0.85 or later on Xcode 26, because its module pulls in the fmt that 0.82 pins
+- Hermes V1 is confirmed at runtime: `HermesInternal` reports Static Hermes
+- The `fmt` workaround is gone. Nothing replaces it
+- The example builds without `expo-dev-client`, a change from section 5. A Debug build loads Metro directly, and a launcher screen would block hands-free CI runs. Add it if someone wants a shareable development build
+- Bare React Native stays covered by the install test, which builds a bare 0.88 app. It passes on iOS and Android
+
 ### Corrections to the review
 
 - `close()` during a query was labelled "Read from code; 8 UI attempts did not crash". It hung the app when tested directly.
@@ -350,12 +359,14 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 | The "Android rowid bug" in the docs was our own build, not DuckDB. `Information loss on integer cast` was the check `-DDEBUG` enabled | Workaround removed: 11 skipping tests, the "FTS Unavailable on Android" screen and the doc warnings. A failure now fails |
 | An explicit extension list without `core_functions` silently dropped `sum()` and similar | Fixed. It is always linked |
 | RN 0.82 on Xcode 26 needs the `fmt` workaround in every consumer's Podfile, after `react_native_post_install` | Documented in `docs/bare-workflow.md`. Goes away with M4 |
+| `cancel()` was lost if the query had not started yet, because DuckDB clears the interrupt flag at query start. The query then ran to completion | Fixed. Work is counted when scheduled, and `cancel()` and `close()` share one routine that keeps interrupting until that work ends |
+| `fontFamily: 'monospace'` only exists on Android, so iOS never showed the intended monospace | Fixed with a shared `monoFont` |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
 
 ### Open
 
-- The nightly workflow has not run yet
 - The Android package install test is manual. Nightly covers iOS only
+- EAS builds have not been tried. The `sdk-58` image uses Xcode 27.1, which this package has not been built on
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
 - A physical device has not been run

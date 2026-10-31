@@ -1,29 +1,12 @@
 const path = require('path')
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
-const pak = require('../package/package.json')
+const { getDefaultConfig } = require('expo/metro-config')
 
-const root = path.resolve(__dirname, '..')
-const modules = Object.keys({ ...pak.peerDependencies })
+const config = getDefaultConfig(__dirname)
 
-const config = {
-  projectRoot: __dirname,
-  watchFolders: [root],
+// The DuckDB source and native build output are large and contain no JS.
+const packageDir = path.resolve(__dirname, '../package')
+config.resolver.blockList = [
+  new RegExp(`^${packageDir}/(duckdb|vendor|android/(\\.cxx|build))/.*`),
+]
 
-  resolver: {
-    extraNodeModules: modules.reduce((acc, name) => {
-      acc[name] = path.join(__dirname, 'node_modules', name)
-      return acc
-    }, {}),
-  },
-
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
-}
-
-module.exports = mergeConfig(getDefaultConfig(__dirname), config)
+module.exports = config

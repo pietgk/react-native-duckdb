@@ -10,7 +10,7 @@ import {
   Animated,
   type ListRenderItem,
 } from 'react-native'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -25,6 +25,7 @@ import {
   type DatasetFormat,
 } from '../data/datasets'
 import type { DatasetStackParamList } from '../navigation/types'
+import { monoFont } from '../theme/fonts'
 
 type NavProp = NativeStackNavigationProp<DatasetStackParamList, 'DatasetExplorer'>
 type TabType = 'Trending' | 'Curated'
@@ -492,7 +493,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 12,
   },
-  searchInput: { fontSize: 14, paddingVertical: 10, fontFamily: 'monospace' },
+  searchInput: { fontSize: 14, paddingVertical: 10, fontFamily: monoFont },
   segmentContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
@@ -556,7 +557,7 @@ const styles = StyleSheet.create({
   },
   customIcon: { marginRight: 10 },
   customTitle: { fontSize: 14, fontWeight: '600' },
-  customPath: { fontSize: 12, fontFamily: 'monospace', marginTop: 2 },
+  customPath: { fontSize: 12, fontFamily: monoFont, marginTop: 2 },
   loadMoreBtn: {
     alignItems: 'center',
     paddingVertical: 10,

@@ -1,3 +1,5 @@
+import type { IconName } from '../theme/icons'
+
 export interface DatasetQuery {
   name: string
   sql: string
@@ -12,7 +14,7 @@ export interface Dataset {
   parquetPath: string
   description: string
   format: DatasetFormat
-  icon: string
+  icon: IconName
   rowEstimate: string
   sampleQueries: DatasetQuery[]
   source: 'curated' | 'trending'

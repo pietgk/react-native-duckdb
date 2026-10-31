@@ -16,7 +16,7 @@ export function useTestAutorun() {
     if (!__DEV__) return
 
     let running = false
-    const handleUrl = async (url: string | null) => {
+    const handleUrl = async (url: string | null | undefined) => {
       if (running || !url || !AUTORUN_URL.test(url)) return
       running = true
       const results = await TestRunner.runAll({
@@ -28,7 +28,7 @@ export function useTestAutorun() {
     }
 
     if (Platform.OS === 'ios') {
-      handleUrl(Settings.get('rnduckdbAutorun') ?? null)
+      handleUrl(Settings.get('rnduckdbAutorun'))
       return
     }
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import type { TestResult } from '../testing/types'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 interface Props {
   result: TestResult
@@ -100,13 +101,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#FF8A80',
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     marginBottom: 4,
   },
   logText: {
     color: '#B0BEC5',
     fontSize: 11,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     lineHeight: 16,
   },
 })

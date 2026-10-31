@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 interface Props {
   executionTimeMs?: number
@@ -59,10 +60,10 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#DC2626',
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   item: {
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
 })

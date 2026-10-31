@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Text, StyleSheet } from 'react-native'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 interface Props {
   sql: string
@@ -144,7 +145,7 @@ export function SQLHighlighter({ sql }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
   },

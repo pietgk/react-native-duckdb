@@ -10,6 +10,7 @@ import {
 import { HybridDuckDB, withAppender } from '@pietgk/react-native-duckdb'
 import type { Database } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 type Phase = 'idle' | 'insert' | 'appender' | 'done'
 
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
   },
   progressText: { fontSize: 13 },
   errorBox: { padding: 12, borderWidth: 1, borderRadius: 8, marginBottom: 16 },
-  errorText: { fontSize: 13, fontFamily: 'monospace' },
+  errorText: { fontSize: 13, fontFamily: monoFont },
   resultsCard: {
     padding: 16,
     borderRadius: 8,
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bar: { height: '100%', borderRadius: 4, minWidth: 4 },
-  barTime: { width: 80, fontSize: 12, fontWeight: '600', fontFamily: 'monospace', textAlign: 'right' },
+  barTime: { width: 80, fontSize: 12, fontWeight: '600', fontFamily: monoFont, textAlign: 'right' },
   rateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#ddd',
   },
-  rateText: { fontSize: 11, fontFamily: 'monospace' },
+  rateText: { fontSize: 11, fontFamily: monoFont },
   historySection: { marginTop: 8 },
   historyRow: {
     flexDirection: 'row',
@@ -334,5 +335,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 6,
   },
-  historyText: { fontSize: 11, fontFamily: 'monospace' },
+  historyText: { fontSize: 11, fontFamily: monoFont },
 })
