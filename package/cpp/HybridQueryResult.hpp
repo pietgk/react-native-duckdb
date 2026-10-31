@@ -39,7 +39,7 @@ public:
                                std::vector<std::vector<DuckDBValue>>& columns);
 
 private:
-  void materialize(duckdb::MaterializedQueryResult& result);
+  void materialize(duckdb::QueryResult& result);
   bool isNumericType(const std::string& type) const;
   bool isBigIntType(const std::string& type) const;
   bool isBoolType(const std::string& type) const;

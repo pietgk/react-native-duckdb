@@ -5,7 +5,7 @@ namespace margelo::nitro::rnduckdb {
 HybridAppender::HybridAppender(duckdb::Connection& con, const std::string& table,
                                std::optional<double> flushEvery)
     : HybridObject(TAG) {
-  _appender = std::make_unique<duckdb::Appender>(con, table);
+  _appender = std::make_unique<duckdb::Appender>(con, duckdb::Identifier(table));
   if (flushEvery && *flushEvery > 0) {
     _flushEvery = static_cast<uint64_t>(*flushEvery);
   }

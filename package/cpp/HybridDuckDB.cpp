@@ -1,11 +1,25 @@
 #include "HybridDuckDB.hpp"
+#include <mutex>
 #include "HybridDatabase.hpp"
 #include "utils.hpp"
 #include "duckdb.hpp"
 #include <cstdio>
 #include <stdexcept>
 
+// Generated from the app's extension list by scripts/build-duckdb-ios.sh and
+// android/CMakeLists.txt.
+extern "C" int32_t duckdb_register_static_extensions(void);
+
 namespace margelo::nitro::rnduckdb {
+
+static void registerLinkedExtensions() {
+  static std::once_flag registered;
+  std::call_once(registered, []() {
+    if (duckdb_register_static_extensions() != 0) {
+      throw std::runtime_error("[DuckDB] Failed to register the linked extensions");
+    }
+  });
+}
 
 std::string HybridDuckDB::docPath = "";
 std::string HybridDuckDB::documentsDir = "";
@@ -27,6 +41,8 @@ std::shared_ptr<HybridDatabaseSpec> HybridDuckDB::open(
     const std::string& path,
     const std::unordered_map<std::string, std::string>& config) {
 
+  registerLinkedExtensions();
+
   duckdb::DBConfig dbConfig;
 
   // Mobile-safe defaults via SetOptionByName (validates against compile-time capabilities)
@@ -36,7 +52,7 @@ std::shared_ptr<HybridDatabaseSpec> HybridDuckDB::open(
 
   // Apply user config overrides (may include threads, memory_limit, etc.)
   for (const auto& [key, value] : config) {
-    dbConfig.SetOptionByName(key, duckdb::Value(value));
+    dbConfig.SetOptionByName(duckdb::Identifier(key), duckdb::Value(value));
   }
 
   auto resolvedPath = resolvePath(docPath, path);

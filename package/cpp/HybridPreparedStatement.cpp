@@ -13,7 +13,7 @@ static std::shared_ptr<HybridQueryResultSpec> runStatement(
     duckdb::PreparedStatement& stmt,
     const std::optional<std::vector<DuckDBValue>>& params) {
   auto values = params ? toValues(*params) : duckdb::vector<duckdb::Value>();
-  auto result = stmt.Execute(values, false);
+  auto result = stmt.Execute(values);
   if (result->HasError()) {
     throw std::runtime_error("[DuckDB] " + result->GetError());
   }
@@ -24,7 +24,7 @@ static std::shared_ptr<HybridQueryResultSpec> runStatementNamed(
     duckdb::PreparedStatement& stmt,
     const std::unordered_map<std::string, DuckDBValue>& params) {
   auto namedValues = toNamedValues(params);
-  auto result = stmt.Execute(namedValues, false);
+  auto result = stmt.Execute(namedValues);
   if (result->HasError()) {
     throw std::runtime_error("[DuckDB] " + result->GetError());
   }

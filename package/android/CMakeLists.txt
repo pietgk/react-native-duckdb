@@ -56,6 +56,11 @@ execute_process(
   OUTPUT_VARIABLE DUCKDB_GIT_DESCRIBE
 )
 set(OVERRIDE_GIT_DESCRIBE "${DUCKDB_GIT_DESCRIBE}" CACHE STRING "" FORCE)
+execute_process(
+  COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/../scripts/duckdb-version.js commit
+  OUTPUT_VARIABLE DUCKDB_GIT_COMMIT
+)
+set(GIT_COMMIT_HASH "${DUCKDB_GIT_COMMIT}" CACHE STRING "" FORCE)
 
 # Check if httpfs is in the extension config (needs OpenSSL + libcurl)
 set(EXT_CONFIG_PATH "${DUCKDB_SOURCE_DIR}/extension/extension_config_local.cmake")
@@ -177,7 +182,15 @@ target_link_libraries(
   fbjni::fbjni
   ReactAndroid::jsi
 )
-link_extension_libraries(${CMAKE_PROJECT_NAME} PRIVATE)
+
+# Link the app's extensions and generate duckdb_register_static_extensions, which
+# HybridDuckDB.cpp calls. DuckDB's own list is scoped to its directory, so read
+# the one in the generated config. An extension skipped for this ABI is ignored.
+file(READ "${EXT_CONFIG_PATH}" _ext_config_content)
+string(REGEX MATCH "duckdb_extension_statically_link\\(([^)]*)\\)" _ "${_ext_config_content}")
+string(REPLACE " " ";" _LINKED_EXTENSIONS "${CMAKE_MATCH_1}")
+set(DUCKDB_MODULE_BASE_DIR "${DUCKDB_SOURCE_DIR}")
+duckdb_link_extensions(${CMAKE_PROJECT_NAME} EXPLICIT ${_LINKED_EXTENSIONS})
 
 # Link vendor OpenSSL + libcurl static libs into our .so when httpfs is enabled.
 # DuckDB's httpfs extension references OpenSSL/curl symbols but doesn't link them

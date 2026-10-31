@@ -18,16 +18,16 @@ void HybridStreamingResult::loadHybridMethods() {
 }
 
 HybridStreamingResult::HybridStreamingResult(
-    std::unique_ptr<duckdb::QueryResult> result,
+    std::unique_ptr<duckdb::QueryResultStream<>> stream,
     std::unique_ptr<duckdb::Connection> ownedConnection)
     : HybridObject(TAG),
-      _stream(std::move(result)),
+      _stream(std::move(stream)),
       _ownedConnection(std::move(ownedConnection)) {
 
-  for (auto& name : _stream->names) {
-    _columnNames.push_back(name);
+  for (auto& name : _stream->GetNames()) {
+    _columnNames.push_back(name.GetIdentifierName());
   }
-  for (auto& type : _stream->types) {
+  for (auto& type : _stream->GetTypes()) {
     _columnTypes.push_back(type.ToString());
     _logicalTypes.push_back(type);
   }
@@ -53,7 +53,10 @@ std::shared_ptr<HybridQueryResultSpec> HybridStreamingResult::fetchNextChunk() {
   std::lock_guard<std::mutex> lock(_mutex);
   if (_isDone || _closed) return nullptr;
 
-  auto dataChunk = _stream->FetchRaw();
+  auto dataChunk = _stream->Fetch();
+  if (_stream->HasError()) {
+    throw std::runtime_error("[DuckDB] " + _stream->GetError());
+  }
   if (!dataChunk || dataChunk->size() == 0) {
     _isDone = true;
     // Auto-close on exhaustion (release resources but don't lock again)

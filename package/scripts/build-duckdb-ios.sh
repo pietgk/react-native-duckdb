@@ -50,6 +50,9 @@ if [ -f "$EXT_CONFIG" ] && grep -q "httpfs" "$EXT_CONFIG"; then
   echo "--- httpfs detected: will build OpenSSL + libcurl for each target ---"
 fi
 
+
+read -r -a EXTENSIONS <<< "$(node -p "JSON.parse(require('fs').readFileSync('${DUCKDB_DIR}/.extensions-configured', 'utf8')).extensions.join(' ')")"
+
 # Skip the build when nothing that affects the output has changed
 BUILD_KEY_FILE="${PACKAGE_DIR}/DuckDB.xcframework.key"
 BUILD_KEY=$(
@@ -68,7 +71,7 @@ for BUILD_SUBDIR in "build-ios-iphoneos-arm64" "build-ios-iphonesimulator-arm64"
   if [ -d "${DUCKDB_DIR}/${BUILD_SUBDIR}" ]; then
     if [ ! -f "$CACHED_HASH_FILE" ] || [ "$(cat "$CACHED_HASH_FILE")" != "$EXT_CONFIG_HASH" ]; then
       echo "--- Extension config changed, cleaning ${BUILD_SUBDIR} ---"
-      rm -rf "${DUCKDB_DIR}/${BUILD_SUBDIR}"
+      rm -rf "${DUCKDB_DIR:?}/${BUILD_SUBDIR}"
     fi
   fi
 done
@@ -84,6 +87,7 @@ CMAKE_COMMON=(
   -DBUILD_EXTENSIONS_ONLY=OFF
   -DCMAKE_BUILD_TYPE=Release
   -DOVERRIDE_GIT_DESCRIBE="$(node "${SCRIPT_DIR}/duckdb-version.js")"
+  -DGIT_COMMIT_HASH="$(node "${SCRIPT_DIR}/duckdb-version.js" commit)"
   -DCMAKE_CXX_STANDARD=20
   -DBUILD_SHARED_LIBS=OFF
 )
@@ -134,11 +138,18 @@ build_arch() {
     -DDUCKDB_EXPLICIT_PLATFORM="ios_${ARCH}" \
     2>&1 | tail -5
 
-  cmake --build "${FULL_BUILD_DIR}" --config Release --target duckdb_static -j"${JOBS}" 2>&1 | tail -3
+  # duckdb_static does not include the extensions, which each have an archive
+  cmake --build "${FULL_BUILD_DIR}" --config Release --target duckdb_static "${EXTENSIONS[@]/%/_extension}" -j"${JOBS}" 2>&1 | tail -3
+
+  # Defines duckdb_register_static_extensions, which HybridDuckDB.cpp calls
+  local LOADER="${FULL_BUILD_DIR}/static_extension_loader"
+  python3 "${DUCKDB_DIR}/scripts/generate_static_extension_loader.py" "${EXTENSIONS[@]}" --output "${LOADER}.c"
+  xcrun --sdk "${PLATFORM}" clang -c "${LOADER}.c" -o "${LOADER}.o" -arch "${ARCH}" \
+    -isysroot "${SDK_PATH}" "-m${PLATFORM}-version-min=${MIN_IOS}" -I "${DUCKDB_DIR}/src/include"
 
   # Combine all .a files into one per architecture
   local COMBINED="${FULL_BUILD_DIR}/libduckdb_combined.a"
-  local ALL_LIBS=()
+  local ALL_LIBS=("${LOADER}.o")
 
   # Find all .a files produced by the build, skipping the output of a previous run
   while IFS= read -r -d '' lib; do

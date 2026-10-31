@@ -12,7 +12,7 @@ TestRegistry.registerTest('Query Profiling', 'getProfilingInfo returns valid JSO
     if (!info || info.length === 0) throw new Error('Expected non-empty profiling info')
     const parsed = JSON.parse(info)
     console.debug(`profiling parsed keys: ${Object.keys(parsed).join(', ')}`)
-    if (!parsed.children) throw new Error('Expected parsed profiling JSON to have "children" key (operator tree)')
+    if (!Array.isArray(parsed.operator)) throw new Error('Expected parsed profiling JSON to have an "operator" tree')
   } finally {
     db.close()
   }

@@ -97,13 +97,13 @@ LIMIT 10;
 
 ## Verify index usage
 
-Use `EXPLAIN` to confirm the query plan includes `HNSW_INDEX_SCAN`:
+Use `EXPLAIN` to confirm the query plan includes `Hnsw Index Scan`:
 
 ```sql
 EXPLAIN SELECT id FROM embeddings
 ORDER BY array_cosine_distance(vec, [0.1, 0.2, ...]::FLOAT[384])
 LIMIT 10;
--- Look for HNSW_INDEX_SCAN in the output
+-- Look for Hnsw Index Scan in the output
 ```
 
 If you see a sequential scan instead, check that:

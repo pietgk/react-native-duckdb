@@ -10,6 +10,7 @@
 | [Transactions & Batch](transactions.md) | Transaction execution, wrapped databases, batch commands, multi-connection, and attach/detach |
 | [Database Location](database-location.md) | Storage paths, iCloud/Auto Backup, platform defaults |
 | [Full-Text Search](fts.md) | BM25 indexing, 27 language stemmers, field-specific search, and limitations |
+| [Upgrading to DuckDB 2.0](upgrading-to-duckdb-2.md) | What changes for your data and queries |
 | [Testing](testing.md) | Running the checks, the in-app suite and the Maestro flows |
 | [Vector Search](vss.md) | HNSW indexes, distance metrics, on-device RAG patterns |
 | [Remote Data](remote-data.md) | httpfs extension, Hugging Face datasets, S3, TLS configuration |

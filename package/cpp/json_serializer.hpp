@@ -57,7 +57,7 @@ inline std::string valueToJson(const duckdb::Value& val) {
       std::string result = "{";
       for (duckdb::idx_t i = 0; i < children.size(); i++) {
         if (i > 0) result += ",";
-        result += "\"" + escapeJsonString(childTypes[i].first) + "\":";
+        result += "\"" + escapeJsonString(childTypes[i].first.GetIdentifierName()) + "\":";
         result += valueToJson(children[i]);
       }
       return result + "}";
@@ -77,7 +77,7 @@ inline std::string valueToJson(const duckdb::Value& val) {
       auto tag = duckdb::UnionValue::GetTag(val);
       auto& tagName = duckdb::UnionType::GetMemberName(val.type(), tag);
       auto memberVal = duckdb::UnionValue::GetValue(val);
-      return "{\"tag\":\"" + escapeJsonString(tagName) +
+      return "{\"tag\":\"" + escapeJsonString(tagName.GetIdentifierName()) +
              "\",\"value\":" + valueToJson(memberVal) + "}";
     }
     case duckdb::LogicalTypeId::VARCHAR: {

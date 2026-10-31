@@ -233,8 +233,10 @@ const results = db.executeSync(`
 
 ```ts
 const results = db.executeSync(`
-  SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score
-  FROM books WHERE score IS NOT NULL ORDER BY score DESC
+  SELECT * FROM (
+    SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score
+    FROM books
+  ) WHERE score IS NOT NULL ORDER BY score DESC
 `)
 ```
 
@@ -365,7 +367,7 @@ const plan = db.executeSync(`
   EXPLAIN SELECT id FROM embeddings
   ORDER BY array_cosine_distance(vec, [0.1, 0.2]::FLOAT[384]) LIMIT 10
 `)
-// Look for HNSW_INDEX_SCAN in the output
+// Look for "Hnsw Index Scan" in the output
 ```
 
 ### Limitations

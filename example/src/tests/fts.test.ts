@@ -36,7 +36,7 @@ TestRegistry.registerTest(
       )
 
       const result = db.executeSync(
-        "SELECT *, fts_main_books.match_bm25(id, 'database') AS score FROM books WHERE score IS NOT NULL ORDER BY score DESC"
+        "SELECT * FROM (SELECT *, fts_main_books.match_bm25(id, 'database') AS score FROM books) WHERE score IS NOT NULL ORDER BY score DESC"
       )
       const rows = result.toRows()
 
@@ -93,13 +93,13 @@ TestRegistry.registerTest(
 
       // Search with fields restricted to title only
       const titleOnly = db.executeSync(
-        "SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score FROM books WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score FROM books) WHERE score IS NOT NULL ORDER BY score"
       )
       const titleRows = titleOnly.toRows()
 
       // Search across all indexed columns
       const allFields = db.executeSync(
-        "SELECT *, fts_main_books.match_bm25(id, 'database') AS score FROM books WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_books.match_bm25(id, 'database') AS score FROM books) WHERE score IS NOT NULL ORDER BY score"
       )
       const allRows = allFields.toRows()
 
@@ -147,7 +147,7 @@ TestRegistry.registerTest(
       )
 
       const result = db.executeSync(
-        "SELECT *, fts_main_docs.match_bm25(id, 'database') AS score FROM docs WHERE score IS NOT NULL ORDER BY score DESC"
+        "SELECT * FROM (SELECT *, fts_main_docs.match_bm25(id, 'database') AS score FROM docs) WHERE score IS NOT NULL ORDER BY score DESC"
       )
       const rows = result.toRows()
 
@@ -251,7 +251,7 @@ TestRegistry.registerTest(
 
       // Search for "communauté" — should match "communautés" in book_44
       const result = db.executeSync(
-        "SELECT *, fts_main_livres.match_bm25(id, 'communauté') AS score FROM livres WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_livres.match_bm25(id, 'communauté') AS score FROM livres) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows = result.toRows()
 
@@ -297,7 +297,7 @@ TestRegistry.registerTest(
 
       // Search unaccented "resume" should match accented "résumé"
       const r1 = db.executeSync(
-        "SELECT *, fts_main_accents.match_bm25(id, 'resume') AS score FROM accents WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_accents.match_bm25(id, 'resume') AS score FROM accents) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows1 = r1.toRows()
       if (rows1.length === 0)
@@ -307,7 +307,7 @@ TestRegistry.registerTest(
 
       // Search accented form should also match
       const r2 = db.executeSync(
-        "SELECT *, fts_main_accents.match_bm25(id, 'résumé') AS score FROM accents WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_accents.match_bm25(id, 'résumé') AS score FROM accents) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows2 = r2.toRows()
       if (rows2.length === 0)
@@ -356,7 +356,7 @@ TestRegistry.registerTest(
 
       // Search near special characters
       const r1 = db.executeSync(
-        "SELECT *, fts_main_unicode_test.match_bm25(id, 'special') AS score FROM unicode_test WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_unicode_test.match_bm25(id, 'special') AS score FROM unicode_test) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows1 = r1.toRows()
       if (rows1.length === 0)
@@ -364,7 +364,7 @@ TestRegistry.registerTest(
 
       // Search for "technology" should match both CJK and regular rows
       const r2 = db.executeSync(
-        "SELECT *, fts_main_unicode_test.match_bm25(id, 'technology') AS score FROM unicode_test WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_unicode_test.match_bm25(id, 'technology') AS score FROM unicode_test) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows2 = r2.toRows()
       if (rows2.length < 2)
@@ -374,7 +374,7 @@ TestRegistry.registerTest(
 
       // Search for "ocean" near emoji
       const r3 = db.executeSync(
-        "SELECT *, fts_main_unicode_test.match_bm25(id, 'ocean') AS score FROM unicode_test WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_unicode_test.match_bm25(id, 'ocean') AS score FROM unicode_test) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows3 = r3.toRows()
       if (rows3.length === 0)
@@ -414,7 +414,7 @@ TestRegistry.registerTest(
 
       // Verify search works
       const r1 = db.executeSync(
-        "SELECT *, fts_main_articles.match_bm25(id, 'physics') AS score FROM articles WHERE score IS NOT NULL"
+        "SELECT * FROM (SELECT *, fts_main_articles.match_bm25(id, 'physics') AS score FROM articles) WHERE score IS NOT NULL"
       )
       if (r1.toRows().length === 0)
         throw new Error('Expected results before drop')
@@ -441,7 +441,7 @@ TestRegistry.registerTest(
 
       // Verify search works again after recreation
       const r2 = db.executeSync(
-        "SELECT *, fts_main_articles.match_bm25(id, 'physics') AS score FROM articles WHERE score IS NOT NULL"
+        "SELECT * FROM (SELECT *, fts_main_articles.match_bm25(id, 'physics') AS score FROM articles) WHERE score IS NOT NULL"
       )
       if (r2.toRows().length === 0)
         throw new Error('Expected results after recreate')
@@ -539,7 +539,7 @@ TestRegistry.registerTest(
       )
 
       const result = db.executeSync(
-        "SELECT *, fts_main_nulltest.match_bm25(id, 'database') AS score FROM nulltest WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_nulltest.match_bm25(id, 'database') AS score FROM nulltest) WHERE score IS NOT NULL ORDER BY score"
       )
       const rows = result.toRows()
 
@@ -594,7 +594,7 @@ TestRegistry.registerTest(
       // Time a search
       const searchStart = Date.now()
       const result = db.executeSync(
-        "SELECT *, fts_main_scale_test.match_bm25(id, 'book') AS score FROM scale_test WHERE score IS NOT NULL ORDER BY score LIMIT 10"
+        "SELECT * FROM (SELECT *, fts_main_scale_test.match_bm25(id, 'book') AS score FROM scale_test) WHERE score IS NOT NULL ORDER BY score LIMIT 10"
       )
       const searchElapsed = Date.now() - searchStart
       const rows = result.toRows()
@@ -638,7 +638,7 @@ TestRegistry.registerTest(
 
       // Verify initial search finds the term
       const r1 = db.executeSync(
-        "SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot WHERE score IS NOT NULL"
+        "SELECT * FROM (SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot) WHERE score IS NOT NULL"
       )
       if (r1.toRows().length === 0)
         throw new Error('Expected to find "quantum" in initial data')
@@ -650,7 +650,7 @@ TestRegistry.registerTest(
 
       // Search again — new row should NOT be found (static snapshot)
       const r2 = db.executeSync(
-        "SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot WHERE score IS NOT NULL"
+        "SELECT * FROM (SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot) WHERE score IS NOT NULL"
       )
       const ids2 = r2.toRows().map((r: any) => r.id)
       if (ids2.includes('s2'))
@@ -666,7 +666,7 @@ TestRegistry.registerTest(
 
       // Now the new row should appear
       const r3 = db.executeSync(
-        "SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot WHERE score IS NOT NULL ORDER BY score"
+        "SELECT * FROM (SELECT *, fts_main_snapshot.match_bm25(id, 'quantum') AS score FROM snapshot) WHERE score IS NOT NULL ORDER BY score"
       )
       const ids3 = r3.toRows().map((r: any) => r.id)
       if (!ids3.includes('s2'))

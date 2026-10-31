@@ -23,7 +23,7 @@ The DuckDB engine version string.
 **Type:** `string` (readonly)
 
 ```ts
-console.log(HybridDuckDB.version) // "1.4.5"
+console.log(HybridDuckDB.version) // "v2.0.0"
 ```
 
 ---

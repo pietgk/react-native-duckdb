@@ -167,3 +167,22 @@ TestRegistry.registerTest('Streaming', 'Empty result stream — fetchChunk retur
     db.close()
   }
 })
+
+TestRegistry.registerTest('Streaming', 'stream rejects more than one statement', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    let threw = false
+    try {
+      await db.stream('SELECT 1 AS a; SELECT 2 AS b')
+    } catch (e: any) {
+      threw = true
+      console.debug(`multi-statement stream: ${e.message}`)
+    }
+    if (!threw) throw new Error('Expected stream() to reject several statements')
+    const stream = await db.stream('SELECT 1 AS a')
+    await stream.fetchChunk()
+    stream.close()
+  } finally {
+    db.close()
+  }
+})
