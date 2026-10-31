@@ -9,28 +9,28 @@ Releases go to GitHub, not npmjs.com. One tag produces both install paths from t
 
 1. Update the version in `package/package.json`.
 
-2. Commit the version bump:
+2. Merge the version bump to `main` through a PR, and wait for CI.
+
+3. Create and push the tag. This repo also has upstream's tags if you fetch from `upstream`, so push only the new tag:
    ```bash
-   git commit -am "chore: bump version to X.Y.Z"
+   git tag -a vX.Y.Z -m "vX.Y.Z"
+   git push origin vX.Y.Z
    ```
 
-3. Create and push the tag:
+4. Approve the run in [Actions](https://github.com/pietgk/react-native-duckdb/actions/workflows/release.yml).
+
+5. Check the [release](https://github.com/pietgk/react-native-duckdb/releases), then test what was published:
    ```bash
-   git tag vX.Y.Z
-   git push && git push --tags
+   PACKAGE_SOURCE=https://github.com/pietgk/react-native-duckdb/releases/download/vX.Y.Z/pietgk-react-native-duckdb-X.Y.Z.tgz scripts/check-package-install.sh ios
    ```
 
-4. Check the [release](https://github.com/pietgk/react-native-duckdb/releases) and its tarball.
+6. Update the version in the install URLs in `README.md`, `docs/bare-workflow.md` and `docs/expo.md`.
 
-5. Update the version in the install URLs in `README.md`, `docs/bare-workflow.md` and `docs/expo.md`.
+## Environment
 
-## First Release
+The `release` environment requires a reviewer and only accepts `v*` tags. Approve a run with **Review deployments**, not **Start all waiting jobs**, which bypasses the rule with admin rights.
 
-Do these once:
-
-1. Create a `release` environment with a required reviewer, under Settings > Environments. Until then the workflow runs as soon as a tag is pushed, with no approval step.
-
-2. After the first publish, make the package public under Packages > Package settings. New packages start private, and this cannot be undone.
+The package is public because it is linked to this public repository. It needs no setup.
 
 ## What the Workflow Does
 
