@@ -173,6 +173,14 @@ private:
   void shutdown();
   void interruptWork(std::unique_lock<std::mutex>& lock, uint64_t startedBefore);
 
+  template <class Submit>
+  std::unique_ptr<duckdb::QueryResult> collectWithProgress(
+      Submit&& submit,
+      const std::optional<std::function<void(double)>>& onProgress);
+
+  std::unique_ptr<duckdb::Connection> createStreamConnection(
+      const std::optional<std::function<void(double)>>& onProgress);
+
   std::unique_ptr<duckdb::QueryResult> executeWithProgress(
       const std::string& sql,
       const std::optional<DuckDBParams>& params,

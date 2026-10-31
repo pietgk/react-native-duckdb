@@ -72,8 +72,10 @@ ORDER BY score DESC;
 Restrict the search to specific indexed columns with the `fields` parameter:
 
 ```sql
-SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score
-FROM books
+SELECT * FROM (
+    SELECT *, fts_main_books.match_bm25(id, 'database', fields := 'title') AS score
+    FROM books
+) sq
 WHERE score IS NOT NULL
 ORDER BY score DESC;
 ```
@@ -89,12 +91,14 @@ ORDER BY score DESC;
 
 ```sql
 -- Require all terms, reduce length normalization
-SELECT *, fts_main_articles.match_bm25(
-    id, 'duckdb mobile react native',
-    conjunctive := 1,
-    b := 0.5
-) AS score
-FROM articles
+SELECT * FROM (
+    SELECT *, fts_main_articles.match_bm25(
+        id, 'duckdb mobile react native',
+        conjunctive := 1,
+        b := 0.5
+    ) AS score
+    FROM articles
+) sq
 WHERE score IS NOT NULL
 ORDER BY score DESC;
 ```
@@ -160,6 +164,8 @@ PRAGMA create_fts_index('docs', 'id', 'title', 'body', stemmer='english');
 **Static snapshot index.** The FTS index does not auto-update. After any INSERT, UPDATE, or DELETE, you must `PRAGMA drop_fts_index` and recreate it. There is no incremental update mechanism.
 
 **No CJK tokenization.** The Snowball stemmer splits on whitespace only. Chinese, Japanese, and Korean text is not properly tokenized -- individual characters are not searchable as words.
+
+**Filter on the score in an outer query.** `match_bm25` is not allowed as an alias referenced in the same `WHERE`, so wrap it in a subquery as the examples here do.
 
 **In-memory databases lose the index on close.** The FTS index is stored in DuckDB's schema. Closing an in-memory database discards it entirely.
 

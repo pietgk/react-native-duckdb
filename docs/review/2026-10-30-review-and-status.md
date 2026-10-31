@@ -299,8 +299,9 @@ M0 to M3 are merged to `main` on the fork through [PR #1](https://github.com/pie
 | M1 Safety net | Done | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. `main` requires `checks`, `ios` and `android` |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
 | M3 Packaging | Done | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. `v1.0.0` released |
-| M4 Expo SDK 58 | On branch `m4-expo` | Example converted: native projects are generated from `app.json`. Suite passes on both platforms. EAS not tried |
-| M5 onward | Not started | |
+| M4 Expo SDK 58 | Done | Example converted: native projects are generated from `app.json`. Suite passes on both platforms. EAS not tried |
+| M5 DuckDB 2.0 LTS | On branch `m5-duckdb2` | A real 1.4 database opens on 2.0 after an in-place app upgrade on both platforms, with identical results. Full suite passes |
+| M6 onward | Not started | |
 
 Verified on the final code:
 
@@ -338,6 +339,15 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 - The example builds without `expo-dev-client`, a change from section 5. A Debug build loads Metro directly, and a launcher screen would block hands-free CI runs. Add it if someone wants a shareable development build
 - Bare React Native stays covered by the install test, which builds a bare 0.88 app. It passes on iOS and Android
 
+### DuckDB 2.0 notes
+
+- The migration guide does not cover the C++ API, which changed a lot. `MaterializedQueryResult` and `PendingQueryResult` are gone, replaced by one `QueryResult` plus `QueryResultStream`. The port removed 94 lines, because four copies of the progress loop became one helper
+- Extensions no longer come with `duckdb_static`. Each has its own archive, and `duckdb_register_static_extensions()` must run before a database opens. Our C++ calls it on both platforms. On iOS the build compiles DuckDB's generated loader into the combined archive
+- `fts` now needs `APPLY_PATCHES` and `sqlite_scanner` needs `SUBMODULES`. Jest compares both with DuckDB's config, as it does the commits
+- The version must be the plain tag. `v2.0.0-0-g...` left DuckDB's version numbers empty
+- `scripts/update-duckdb.js` replaces the dead update workflow. It reproduced these pins exactly
+- `docs/upgrading-to-duckdb-2.md` lists what changes for consumers
+
 ### Corrections to the review
 
 - `close()` during a query was labelled "Read from code; 8 UI attempts did not crash". It hung the app when tested directly.
@@ -361,6 +371,7 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 | RN 0.82 on Xcode 26 needs the `fmt` workaround in every consumer's Podfile, after `react_native_post_install` | Documented in `docs/bare-workflow.md`. Goes away with M4 |
 | `cancel()` was lost if the query had not started yet, because DuckDB clears the interrupt flag at query start. The query then ran to completion | Fixed. Work is counted when scheduled, and `cancel()` and `close()` share one routine that keeps interrupting until that work ends |
 | `fontFamily: 'monospace'` only exists on Android, so iOS never showed the intended monospace | Fixed with a shared `monoFont` |
+| HTTPS failed on Android with DuckDB 2.0, which verifies certificates but only looks in Linux locations | Fixed. Android joins the system roots into a bundle at startup. iOS builds curl 8.23 with Apple's trust store. A permanent test checks that self-signed and expired certificates are refused. Network tests only run nightly, so a no-network test now checks the Android bundle on every PR |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
 
@@ -369,4 +380,4 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 - The Android package install test is manual. Nightly covers iOS only
 - EAS builds have not been tried. The `sdk-58` image uses Xcode 27.1, which this package has not been built on
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
-- A physical device has not been run
+- A physical device has not been run. This matters most for iOS HTTPS: the simulator can read the host Mac's `/etc/ssl/cert.pem`, so a simulator pass does not prove Apple's trust store path works on an iPhone

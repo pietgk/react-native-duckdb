@@ -78,7 +78,7 @@ For HTTP (non-secure) URLs, you would need to add an ATS exception to `Info.plis
 
 ## Certificate validation
 
-The standard OS certificate store is used for TLS validation. Custom certificate pinning is not built-in but can be configured via `SET ca_cert_file` if needed.
+Server certificates are verified against the operating system's roots. On iOS, curl uses Apple's trust store. On Android, the package joins the system roots into a bundle in the app's storage and sets `ca_cert_file` to it. To use your own roots, pass `ca_cert_file` when opening the database or run `SET ca_cert_file`.
 
 ## Proxy support
 

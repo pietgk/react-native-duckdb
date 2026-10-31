@@ -53,6 +53,13 @@ describe('configure-extensions', () => {
     expect(config).toContain('duckdb_extension_load(icu)');
   });
 
+  it('links every extension statically', () => {
+    run(['--extensions', 'core_functions,json,httpfs']);
+    expect(generatedConfig()).toContain(
+      'duckdb_extension_statically_link(core_functions json httpfs)'
+    );
+  });
+
   it('skips default extensions that were not requested', () => {
     run(['--extensions', 'core_functions,json']);
     expect(generatedConfig()).toContain('set(SKIP_EXTENSIONS "parquet")');
@@ -116,5 +123,9 @@ describe('out-of-tree pins', () => {
     const [, tag] = upstream.match(/GIT_TAG\s+([0-9a-f]{40})/);
     run(['--extensions', name]);
     expect(generatedConfig()).toContain(`GIT_TAG ${tag}`);
+    expect(generatedConfig().includes('APPLY_PATCHES')).toBe(upstream.includes('APPLY_PATCHES'));
+    expect(generatedConfig().match(/SUBMODULES \S+?(?=[\s)])/)?.[0]).toBe(
+      upstream.match(/SUBMODULES \S+/)?.[0]
+    );
   });
 });

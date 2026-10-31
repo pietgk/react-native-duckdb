@@ -6,7 +6,7 @@
   <a href="https://github.com/pietgk/react-native-duckdb/releases"><img src="https://img.shields.io/github/v/release/pietgk/react-native-duckdb.svg" alt="Latest release" /></a>
   <a href="https://github.com/pietgk/react-native-duckdb/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg" alt="Platform" />
-  <img src="https://img.shields.io/badge/DuckDB-v1.4.5-FFF100.svg" alt="DuckDB Version" />
+  <img src="https://img.shields.io/badge/DuckDB-v2.0.0-FFF100.svg" alt="DuckDB Version" />
 </p>
 
 ---
@@ -56,7 +56,9 @@ npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0
 
 Or install from GitHub Packages, which gives you version ranges and `npm update` but needs a token even though the package is public. See [Installing from GitHub Packages](docs/bare-workflow.md#installing-from-github-packages).
 
-This package is not on npmjs.com. For iOS, run `pod install` after installation.
+This package is not on npmjs.com. For iOS, run `pod install` after installation. Building needs git and Python 3.
+
+Upgrading across DuckDB versions? See [Upgrading to DuckDB 2.0](docs/upgrading-to-duckdb-2.md).
 
 ## Quick Start
 
@@ -209,8 +211,10 @@ db.executeSync("LOAD 'fts'")
 db.executeSync("PRAGMA create_fts_index('docs', 'id', 'title', 'body', stemmer='english')")
 
 const results = db.executeSync(`
-  SELECT *, fts_main_docs.match_bm25(id, 'search query') AS score
-  FROM docs WHERE score IS NOT NULL ORDER BY score DESC
+  SELECT * FROM (
+    SELECT *, fts_main_docs.match_bm25(id, 'search query') AS score
+    FROM docs
+  ) WHERE score IS NOT NULL ORDER BY score DESC
 `)
 ```
 

@@ -108,7 +108,7 @@ std::shared_ptr<HybridQueryResultSpec> HybridDatabase::executeSync(
       throw std::runtime_error("[DuckDB] " + prepared->GetError());
     }
     auto values = toValues(*params);
-    auto result = prepared->Execute(values, false);
+    auto result = prepared->Execute(values);
     if (result->HasError()) {
       throw std::runtime_error("[DuckDB] " + result->GetError());
     }
@@ -190,7 +190,7 @@ std::string HybridDatabase::getProfilingInfo() {
     throw std::runtime_error(
         "[DuckDB] Profiling is not enabled. Run: PRAGMA enable_profiling = 'json'");
   }
-  return _con->GetProfilingInformation(duckdb::ProfilerPrintFormat::JSON);
+  return _con->GetProfilingInformation(duckdb::ProfilerPrintFormat::JSON());
 }
 
 // --- Progress callbacks ---
@@ -210,54 +210,29 @@ void HybridDatabase::removeProgressCallback() {
 
 // --- Progress-aware execution helpers ---
 
-std::unique_ptr<duckdb::QueryResult> HybridDatabase::executeWithProgress(
-    const std::string& sql,
-    const std::optional<DuckDBParams>& params,
+static void enableProgress(duckdb::Connection& con) {
+  con.context->config.enable_progress_bar = true;
+  con.context->config.print_progress_bar = false;
+}
+
+template <class Submit>
+std::unique_ptr<duckdb::QueryResult> HybridDatabase::collectWithProgress(
+    Submit&& submit,
     const std::optional<std::function<void(double)>>& onProgress) {
 
   bool wasProgressEnabled = _con->context->config.enable_progress_bar;
   if (onProgress && !wasProgressEnabled) {
-    _con->context->config.enable_progress_bar = true;
-    _con->context->config.print_progress_bar = false;
+    enableProgress(*_con);
   }
 
-  std::unique_ptr<duckdb::PendingQueryResult> pending;
-  if (params && !params->empty()) {
-    auto prepared = _con->Prepare(sql);
-    if (prepared->HasError()) {
-      throw std::runtime_error("[DuckDB] " + prepared->GetError());
-    }
-    auto values = toValues(*params);
-    pending = prepared->PendingQuery(values, false);
-  } else {
-    pending = _con->PendingQuery(sql, false);
+  auto result = submit();
+  if (result->HasError()) {
+    throw std::runtime_error("[DuckDB] " + result->GetError());
   }
 
-  if (pending->HasError()) {
-    throw std::runtime_error("[DuckDB] " + pending->GetError());
-  }
-
-  duckdb::PendingExecutionResult status;
-  int lastPctInt = -1;
-  while (!duckdb::PendingQueryResult::IsResultReady(
-             status = pending->ExecuteTask())) {
-    if (status == duckdb::PendingExecutionResult::EXECUTION_ERROR) {
-      break;
-    }
-    if (status == duckdb::PendingExecutionResult::BLOCKED) {
-      pending->WaitForTask();
-    }
-    if (onProgress) {
-      double pct = _con->GetQueryProgress();
-      int pctInt = static_cast<int>(pct);
-      if (pct >= 0 && pctInt != lastPctInt) {
-        (*onProgress)(pct);
-        lastPctInt = pctInt;
-      }
-    }
-  }
-
-  auto result = pending->Execute();
+  // Submit only starts the query. This asks for the rows to be collected.
+  result->Materialize();
+  runWithProgress(*result, *_con, onProgress);
 
   if (onProgress && !wasProgressEnabled) {
     _con->context->config.enable_progress_bar = false;
@@ -270,59 +245,38 @@ std::unique_ptr<duckdb::QueryResult> HybridDatabase::executeWithProgress(
   return result;
 }
 
+std::unique_ptr<duckdb::QueryResult> HybridDatabase::executeWithProgress(
+    const std::string& sql,
+    const std::optional<DuckDBParams>& params,
+    const std::optional<std::function<void(double)>>& onProgress) {
+  // Outlives the query: destroying a statement removes it from the connection.
+  duckdb::unique_ptr<duckdb::PreparedStatement> prepared;
+  return collectWithProgress([&]() -> duckdb::unique_ptr<duckdb::QueryResult> {
+    if (params && !params->empty()) {
+      prepared = _con->Prepare(sql);
+      if (prepared->HasError()) {
+        throw std::runtime_error("[DuckDB] " + prepared->GetError());
+      }
+      auto values = toValues(*params);
+      return prepared->Submit(values);
+    }
+    return _con->Submit(sql);
+  }, onProgress);
+}
+
 std::unique_ptr<duckdb::QueryResult> HybridDatabase::executeNamedWithProgress(
     const std::string& sql,
     const DuckDBNamedParams& params,
     const std::optional<std::function<void(double)>>& onProgress) {
-
-  bool wasProgressEnabled = _con->context->config.enable_progress_bar;
-  if (onProgress && !wasProgressEnabled) {
-    _con->context->config.enable_progress_bar = true;
-    _con->context->config.print_progress_bar = false;
-  }
-
-  auto prepared = _con->Prepare(sql);
-  if (prepared->HasError()) {
-    throw std::runtime_error("[DuckDB] " + prepared->GetError());
-  }
-  auto namedValues = toNamedValues(params);
-  auto pending = prepared->PendingQuery(namedValues, false);
-
-  if (pending->HasError()) {
-    throw std::runtime_error("[DuckDB] " + pending->GetError());
-  }
-
-  duckdb::PendingExecutionResult status;
-  int lastPctInt = -1;
-  while (!duckdb::PendingQueryResult::IsResultReady(
-             status = pending->ExecuteTask())) {
-    if (status == duckdb::PendingExecutionResult::EXECUTION_ERROR) {
-      break;
+  duckdb::unique_ptr<duckdb::PreparedStatement> prepared;
+  return collectWithProgress([&]() -> duckdb::unique_ptr<duckdb::QueryResult> {
+    prepared = _con->Prepare(sql);
+    if (prepared->HasError()) {
+      throw std::runtime_error("[DuckDB] " + prepared->GetError());
     }
-    if (status == duckdb::PendingExecutionResult::BLOCKED) {
-      pending->WaitForTask();
-    }
-    if (onProgress) {
-      double pct = _con->GetQueryProgress();
-      int pctInt = static_cast<int>(pct);
-      if (pct >= 0 && pctInt != lastPctInt) {
-        (*onProgress)(pct);
-        lastPctInt = pctInt;
-      }
-    }
-  }
-
-  auto result = pending->Execute();
-
-  if (onProgress && !wasProgressEnabled) {
-    _con->context->config.enable_progress_bar = false;
-  }
-
-  if (result->HasError()) {
-    throw std::runtime_error("[DuckDB] " + result->GetError());
-  }
-
-  return result;
+    auto namedValues = toNamedValues(params);
+    return prepared->Submit(namedValues);
+  }, onProgress);
 }
 
 // --- Named parameter execution ---
@@ -336,7 +290,7 @@ std::shared_ptr<HybridQueryResultSpec> HybridDatabase::executeSyncNamed(
     throw std::runtime_error("[DuckDB] " + prepared->GetError());
   }
   auto namedValues = toNamedValues(params);
-  auto result = prepared->Execute(namedValues, false);
+  auto result = prepared->Execute(namedValues);
   if (result->HasError()) {
     throw std::runtime_error("[DuckDB] " + result->GetError());
   }
@@ -424,6 +378,34 @@ void ConnectionTracker::closeAll() {
 
 // --- Streaming ---
 
+// A stream owns its connection, so close() only has to wait for its creation.
+std::unique_ptr<duckdb::Connection> HybridDatabase::createStreamConnection(
+    const std::optional<std::function<void(double)>>& onProgress) {
+  WorkScope work(*this);
+  auto con = std::make_unique<duckdb::Connection>(*_db);
+  if (onProgress) {
+    enableProgress(*con);
+  }
+  return con;
+}
+
+static std::shared_ptr<HybridStreamingResultSpec> openStream(
+    std::unique_ptr<duckdb::Connection> con,
+    duckdb::unique_ptr<duckdb::QueryResult> result,
+    const std::optional<std::function<void(double)>>& onProgress) {
+  if (result->HasError()) {
+    throw std::runtime_error("[DuckDB] " + result->GetError());
+  }
+
+  auto stream = std::make_unique<duckdb::QueryResultStream<>>(std::move(result));
+  runWithProgress(*stream, *con, onProgress);
+  if (stream->HasError()) {
+    throw std::runtime_error("[DuckDB] " + stream->GetError());
+  }
+
+  return std::make_shared<HybridStreamingResult>(std::move(stream), std::move(con));
+}
+
 std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatabase::stream(
     const std::string& sql,
     const std::optional<std::vector<DuckDBValue>>& params,
@@ -440,81 +422,24 @@ std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatab
 
   return Promise<std::shared_ptr<HybridStreamingResultSpec>>::async(
     [self = shared_cast<HybridDatabase>(), sql, copiedParams, onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
-      // The stream owns this connection, so close() only has to wait for its creation.
-      auto streamCon = [&self] {
-        WorkScope work(*self);
-        return std::make_unique<duckdb::Connection>(*self->_db);
-      }();
+      auto streamCon = self->createStreamConnection(onProgress);
 
-      if (onProgress) {
-        streamCon->context->config.enable_progress_bar = true;
-        streamCon->context->config.print_progress_bar = false;
-
-        std::unique_ptr<duckdb::PendingQueryResult> pending;
-        if (copiedParams && !copiedParams->empty()) {
-          auto prepared = streamCon->Prepare(sql);
-          if (prepared->HasError()) {
-            throw std::runtime_error("[DuckDB] " + prepared->GetError());
-          }
-          auto values = toValues(*copiedParams);
-          pending = prepared->PendingQuery(values, true);
-        } else {
-          pending = streamCon->PendingQuery(sql, true);
-        }
-
-        if (pending->HasError()) {
-          throw std::runtime_error("[DuckDB] " + pending->GetError());
-        }
-
-        duckdb::PendingExecutionResult status;
-        int lastPctInt = -1;
-        while (!duckdb::PendingQueryResult::IsResultReady(
-                   status = pending->ExecuteTask())) {
-          if (status == duckdb::PendingExecutionResult::EXECUTION_ERROR) {
-            break;
-          }
-          if (status == duckdb::PendingExecutionResult::BLOCKED) {
-            pending->WaitForTask();
-          }
-          double pct = streamCon->GetQueryProgress();
-          int pctInt = static_cast<int>(pct);
-          if (pct >= 0 && pctInt != lastPctInt) {
-            (*onProgress)(pct);
-            lastPctInt = pctInt;
-          }
-        }
-
-        auto result = pending->Execute();
-        if (result->HasError()) {
-          throw std::runtime_error("[DuckDB] " + result->GetError());
-        }
-
-        return std::make_shared<HybridStreamingResult>(
-          std::move(result), std::move(streamCon));
-      }
-
-      std::unique_ptr<duckdb::QueryResult> result;
+      duckdb::unique_ptr<duckdb::PreparedStatement> prepared;
+      duckdb::unique_ptr<duckdb::QueryResult> result;
       if (copiedParams && !copiedParams->empty()) {
-        auto prepared = streamCon->Prepare(sql);
+        prepared = streamCon->Prepare(sql);
         if (prepared->HasError()) {
           throw std::runtime_error("[DuckDB] " + prepared->GetError());
         }
         auto values = toValues(*copiedParams);
-        result = prepared->Execute(values, true);
+        result = prepared->Submit(values);
       } else {
-        result = streamCon->SendQuery(sql);
+        result = streamCon->Submit(sql);
       }
 
-      if (result->HasError()) {
-        throw std::runtime_error("[DuckDB] " + result->GetError());
-      }
-
-      return std::make_shared<HybridStreamingResult>(
-        std::move(result), std::move(streamCon));
+      return openStream(std::move(streamCon), std::move(result), onProgress);
     });
 }
-
-// --- Streaming (named params) ---
 
 std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatabase::streamNamed(
     const std::string& sql,
@@ -532,67 +457,16 @@ std::shared_ptr<Promise<std::shared_ptr<HybridStreamingResultSpec>>> HybridDatab
 
   return Promise<std::shared_ptr<HybridStreamingResultSpec>>::async(
     [self = shared_cast<HybridDatabase>(), sql, copiedParams = std::move(copiedParams), onProgress]() -> std::shared_ptr<HybridStreamingResultSpec> {
-      // The stream owns this connection, so close() only has to wait for its creation.
-      auto streamCon = [&self] {
-        WorkScope work(*self);
-        return std::make_unique<duckdb::Connection>(*self->_db);
-      }();
-
-      if (onProgress) {
-        streamCon->context->config.enable_progress_bar = true;
-        streamCon->context->config.print_progress_bar = false;
-
-        auto prepared = streamCon->Prepare(sql);
-        if (prepared->HasError()) {
-          throw std::runtime_error("[DuckDB] " + prepared->GetError());
-        }
-        auto namedValues = toNamedValues(copiedParams);
-        auto pending = prepared->PendingQuery(namedValues, true);
-
-        if (pending->HasError()) {
-          throw std::runtime_error("[DuckDB] " + pending->GetError());
-        }
-
-        duckdb::PendingExecutionResult status;
-        int lastPctInt = -1;
-        while (!duckdb::PendingQueryResult::IsResultReady(
-                   status = pending->ExecuteTask())) {
-          if (status == duckdb::PendingExecutionResult::EXECUTION_ERROR) {
-            break;
-          }
-          if (status == duckdb::PendingExecutionResult::BLOCKED) {
-            pending->WaitForTask();
-          }
-          double pct = streamCon->GetQueryProgress();
-          int pctInt = static_cast<int>(pct);
-          if (pct >= 0 && pctInt != lastPctInt) {
-            (*onProgress)(pct);
-            lastPctInt = pctInt;
-          }
-        }
-
-        auto result = pending->Execute();
-        if (result->HasError()) {
-          throw std::runtime_error("[DuckDB] " + result->GetError());
-        }
-
-        return std::make_shared<HybridStreamingResult>(
-          std::move(result), std::move(streamCon));
-      }
+      auto streamCon = self->createStreamConnection(onProgress);
 
       auto prepared = streamCon->Prepare(sql);
       if (prepared->HasError()) {
         throw std::runtime_error("[DuckDB] " + prepared->GetError());
       }
       auto namedValues = toNamedValues(copiedParams);
-      auto result = prepared->Execute(namedValues, true);
+      auto result = prepared->Submit(namedValues);
 
-      if (result->HasError()) {
-        throw std::runtime_error("[DuckDB] " + result->GetError());
-      }
-
-      return std::make_shared<HybridStreamingResult>(
-        std::move(result), std::move(streamCon));
+      return openStream(std::move(streamCon), std::move(result), onProgress);
     });
 }
 
@@ -668,6 +542,11 @@ BatchResult HybridDatabase::executeBatchSync(const std::vector<BatchCommand>& co
   // Anything below can throw, including reading a "Count" column that is not a number.
   try {
     double totalRowsAffected = 0;
+    auto addRowsAffected = [&totalRowsAffected](duckdb::QueryResult& result) {
+      if (result.ColumnCount() == 1 && result.GetNames()[0].GetIdentifierName() == "Count") {
+        totalRowsAffected += result.Collection().GetValue(0, 0).GetValue<int64_t>();
+      }
+    };
 
     for (const auto& cmd : commands) {
       if (cmd.params && !cmd.params->empty()) {
@@ -676,22 +555,17 @@ BatchResult HybridDatabase::executeBatchSync(const std::vector<BatchCommand>& co
           throw std::runtime_error("[DuckDB] " + prepared->GetError());
         }
         auto values = toValues(*cmd.params);
-        auto queryResult = prepared->Execute(values, false);
-        if (queryResult->HasError()) {
-          throw std::runtime_error("[DuckDB] " + queryResult->GetError());
+        auto result = prepared->Execute(values);
+        if (result->HasError()) {
+          throw std::runtime_error("[DuckDB] " + result->GetError());
         }
-        auto& result = queryResult->Cast<duckdb::MaterializedQueryResult>();
-        if (result.ColumnCount() == 1 && result.names[0] == "Count") {
-          totalRowsAffected += result.GetValue(0, 0).GetValue<int64_t>();
-        }
+        addRowsAffected(*result);
       } else {
         auto result = _con->Query(cmd.query);
         if (result->HasError()) {
           throw std::runtime_error("[DuckDB] " + result->GetError());
         }
-        if (result->ColumnCount() == 1 && result->names[0] == "Count") {
-          totalRowsAffected += result->GetValue(0, 0).GetValue<int64_t>();
-        }
+        addRowsAffected(*result);
       }
     }
 

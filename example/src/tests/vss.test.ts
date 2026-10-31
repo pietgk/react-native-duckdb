@@ -3,6 +3,9 @@ import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 
 const DIMS = 384
 
+// How EXPLAIN names the operator that reads the index
+const HNSW_SCAN = 'Hnsw Index Scan'
+
 function makeVecLiteral(dims: number, seedFn: (dim: number) => number): string {
   const vals: number[] = []
   for (let d = 0; d < dims; d++) vals.push(seedFn(d))
@@ -265,10 +268,10 @@ TestRegistry.registerTest(
   }
 )
 
-// Test 7: EXPLAIN shows HNSW_INDEX_SCAN
+// Test 7: EXPLAIN shows the HNSW index scan
 TestRegistry.registerTest(
   'HNSW Index (vss)',
-  'EXPLAIN shows HNSW_INDEX_SCAN',
+  'EXPLAIN shows the HNSW index scan',
   async () => {
     const db = HybridDuckDB.open(':memory:', {})
     try {
@@ -290,17 +293,17 @@ TestRegistry.registerTest(
       )
       const rows = explain.toRows()
 
-      // Concatenate all values from all rows to find HNSW_INDEX_SCAN
+      // Concatenate all values from all rows to find the index scan
       const planText = rows
         .map((r: any) => Object.values(r).join(' '))
         .join('\n')
 
-      if (!planText.includes('HNSW_INDEX_SCAN'))
+      if (!planText.includes(HNSW_SCAN))
         throw new Error(
-          `Expected HNSW_INDEX_SCAN in EXPLAIN output, got:\n${planText.slice(0, 500)}`
+          `Expected ${HNSW_SCAN} in EXPLAIN output, got:\n${planText.slice(0, 500)}`
         )
 
-      console.debug('EXPLAIN: HNSW_INDEX_SCAN found in query plan')
+      console.debug(`EXPLAIN: ${HNSW_SCAN} found in query plan`)
     } finally {
       db.close()
     }
@@ -434,7 +437,7 @@ TestRegistry.registerTest(
 
       // Timing varies with device load, so the plan is what proves the index is used
       const plan = JSON.stringify(db.executeSync(`EXPLAIN ${query}`).toRows())
-      if (!plan.includes('HNSW_INDEX_SCAN'))
+      if (!plan.includes(HNSW_SCAN))
         throw new Error(`Expected the query to use the HNSW index, got: ${plan}`)
 
       // HNSW-accelerated query

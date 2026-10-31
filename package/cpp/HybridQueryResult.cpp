@@ -21,33 +21,33 @@ HybridQueryResult::HybridQueryResult(std::unique_ptr<duckdb::QueryResult> result
   }
 
   // Extract metadata
-  for (auto& name : result->names) {
-    _columnNames.push_back(name);
+  for (auto& name : result->GetNames()) {
+    _columnNames.push_back(name.GetIdentifierName());
   }
-  for (auto& type : result->types) {
+  for (auto& type : result->GetTypes()) {
     _columnTypes.push_back(type.ToString());
   }
 
   // Check if this is a DML statement that returns changed rows
-  bool isDML = result->properties.return_type == duckdb::StatementReturnType::CHANGED_ROWS;
+  bool isDML = result->GetStatementProperties().return_type == duckdb::StatementReturnType::CHANGED_ROWS;
 
   // Materialize the result
-  auto& materialized = result->Cast<duckdb::MaterializedQueryResult>();
-  _rowCount = materialized.RowCount();
+  _rowCount = result->RowCount();
 
   if (isDML && _rowCount == 1 && _columnNames.size() == 1) {
     // DML statements return a single row with the count of changed rows
-    auto val = materialized.GetValue(0, 0);
+    auto val = result->Collection().GetValue(0, 0);
     _rowsChanged = static_cast<size_t>(val.GetValue<int64_t>());
   }
 
-  materialize(materialized);
+  materialize(*result);
 
   _columnCache.resize(_columnNames.size());
 }
 
-void HybridQueryResult::materialize(duckdb::MaterializedQueryResult& result) {
-  auto colCount = result.types.size();
+void HybridQueryResult::materialize(duckdb::QueryResult& result) {
+  const auto& types = result.GetTypes();
+  auto colCount = types.size();
 
   // Initialize column vectors
   _columns.resize(colCount);
@@ -75,7 +75,7 @@ void HybridQueryResult::materialize(duckdb::MaterializedQueryResult& result) {
       vector.Flatten(chunkSize);
 
       auto& validity = duckdb::FlatVector::Validity(vector);
-      auto typeId = result.types[col].id();
+      auto typeId = types[col].id();
 
       for (duckdb::idx_t row = 0; row < chunkSize; row++) {
         if (!validity.RowIsValid(row)) {
@@ -151,9 +151,9 @@ void HybridQueryResult::materialize(duckdb::MaterializedQueryResult& result) {
             break;
           }
           case duckdb::LogicalTypeId::DECIMAL: {
-            auto width = duckdb::DecimalType::GetWidth(result.types[col]);
-            auto scale = duckdb::DecimalType::GetScale(result.types[col]);
-            switch (result.types[col].InternalType()) {
+            auto width = duckdb::DecimalType::GetWidth(types[col]);
+            auto scale = duckdb::DecimalType::GetScale(types[col]);
+            switch (types[col].InternalType()) {
               case duckdb::PhysicalType::INT16: {
                 auto data = duckdb::FlatVector::GetData<int16_t>(vector);
                 _columns[col].push_back(duckdb::Decimal::ToString(data[row], width, scale));

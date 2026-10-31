@@ -20,20 +20,22 @@ const IN_TREE_EXTENSIONS = [
 const OUT_OF_TREE_EXTENSIONS = {
   sqlite_scanner: {
     git_url: 'https://github.com/duckdb/duckdb-sqlite',
-    git_tag: '0c93d610af1e1f66292559fcf0f01a93597a98b6',
+    git_tag: 'e223dc01493414cef6d5960744f1e048d59fc592',
+    submodules: 'database-connector',
   },
   httpfs: {
     git_url: 'https://github.com/duckdb/duckdb-httpfs',
-    git_tag: '8f21bb4c79bd35733f1d6cb537c9f40611bc00fe',
+    git_tag: '77392a72077a85897db2519fae11e2c0da972b8a',
   },
   fts: {
     git_url: 'https://github.com/duckdb/duckdb-fts',
-    git_tag: '39376623630a968154bef4e6930d12ad0b59d7fb',
+    git_tag: '2266e67d01c737cb65114e77c7c672e58869a635',
+    apply_patches: true,
     include_dir: 'extension/fts/include',
   },
   vss: {
     git_url: 'https://github.com/duckdb/duckdb-vss',
-    git_tag: '4d07d6e3f6ce87013ae59a24b8d8c6740f2db307',
+    git_tag: '3685131eacaf0d467d430be5c4e5e7d1d483437a',
   },
 };
 
@@ -149,12 +151,21 @@ function generateCmake(extensions) {
         if (oot.include_dir) {
           cmd += ` INCLUDE_DIR ${oot.include_dir}`;
         }
+        if (oot.apply_patches) {
+          cmd += ' APPLY_PATCHES';
+        }
+        if (oot.submodules) {
+          cmd += ` SUBMODULES ${oot.submodules}`;
+        }
         cmd += ')';
         lines.push(cmd);
       } else {
         lines.push(`duckdb_extension_load(${ext})`);
       }
     }
+    lines.push('');
+    lines.push('# Link them into the app instead of loading them from files');
+    lines.push(`duckdb_extension_statically_link(${extensions.join(' ')})`);
   }
 
   lines.push('');

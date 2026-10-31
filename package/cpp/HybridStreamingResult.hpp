@@ -16,7 +16,7 @@ namespace margelo::nitro::rnduckdb {
 
 class HybridStreamingResult : public HybridStreamingResultSpec {
 public:
-  HybridStreamingResult(std::unique_ptr<duckdb::QueryResult> result,
+  HybridStreamingResult(std::unique_ptr<duckdb::QueryResultStream<>> stream,
                         std::unique_ptr<duckdb::Connection> ownedConnection);
 
   ~HybridStreamingResult() override {
@@ -44,7 +44,7 @@ private:
   jsi::Value startRaw(jsi::Runtime& rt, const jsi::Value& thisVal,
                       const jsi::Value* args, size_t count);
 
-  std::unique_ptr<duckdb::QueryResult> _stream;
+  std::unique_ptr<duckdb::QueryResultStream<>> _stream;
   std::unique_ptr<duckdb::Connection> _ownedConnection;
   std::function<void(const std::shared_ptr<HybridQueryResultSpec>&)> _onChunkCallback;
   bool _closed = false;

@@ -72,9 +72,9 @@ inline std::optional<DuckDBParams> copyParamsForBackground(
 using DuckDBNamedParams = std::unordered_map<std::string, DuckDBValue>;
 
 // Convert JS named param values to DuckDB BoundParameterData for PreparedStatement::Execute()
-inline duckdb::case_insensitive_map_t<duckdb::BoundParameterData> toNamedValues(
+inline duckdb::identifier_map_t<duckdb::BoundParameterData> toNamedValues(
     const DuckDBNamedParams& params) {
-  duckdb::case_insensitive_map_t<duckdb::BoundParameterData> named;
+  duckdb::identifier_map_t<duckdb::BoundParameterData> named;
   for (const auto& [key, val] : params) {
     duckdb::Value dval;
     if (std::holds_alternative<NullType>(val)) {
@@ -92,7 +92,7 @@ inline duckdb::case_insensitive_map_t<duckdb::BoundParameterData> toNamedValues(
       dval = duckdb::Value::BLOB(
         reinterpret_cast<const uint8_t*>(buf->data()), buf->size());
     }
-    named[key] = duckdb::BoundParameterData(dval);
+    named[duckdb::Identifier(key)] = duckdb::BoundParameterData(dval);
   }
   return named;
 }

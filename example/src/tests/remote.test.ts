@@ -282,3 +282,25 @@ TestRegistry.registerTest(
     }
   }
 )
+
+// A client that verifies nothing would pass every other test here.
+TestRegistry.registerTest('Remote Queries', 'HTTPS rejects an untrusted certificate', async () => {
+  const db = HybridDuckDB.open(':memory:', {})
+  try {
+    db.executeSync("LOAD 'httpfs'")
+    for (const url of ['https://self-signed.badssl.com/', 'https://expired.badssl.com/']) {
+      let error = ''
+      try {
+        db.executeSync(`SELECT * FROM read_text('${url}')`)
+      } catch (e: any) {
+        error = String(e.message)
+      }
+      console.debug(`untrusted certificate at ${url}: ${error}`)
+      if (!/certificate|SSL/i.test(error)) {
+        throw new Error(`Expected a certificate error for ${url}, got: ${error || 'no error'}`)
+      }
+    }
+  } finally {
+    db.close()
+  }
+})
