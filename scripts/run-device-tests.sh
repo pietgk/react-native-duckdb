@@ -22,7 +22,7 @@ METRO_PORT="${METRO_PORT:-8081}"
 MIN_PASSED="${MIN_PASSED:-1}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-600}"
 RESULT_FILE="${RESULT_FILE:-test-results.json}"
-APP_ID="com.rnduckdbexample"
+APP_ID="dev.pietgk.duckdbreference"
 URL="rnduckdb://autorun?${QUERY}"
 LOG_FILE="$(mktemp)"
 METRO_PID=""
@@ -37,7 +37,7 @@ trap cleanup EXIT
 
 if ! curl -s -m 2 "http://localhost:${METRO_PORT}/status" | grep -q "packager-status:running"; then
   echo "--- Starting Metro on port ${METRO_PORT} ---"
-  (cd "${REPO_DIR}/example" && exec npx react-native start --port "${METRO_PORT}") > "${LOG_FILE}.metro" 2>&1 &
+  (cd "${REPO_DIR}/example" && CI=1 exec npx expo start --port "${METRO_PORT}") > "${LOG_FILE}.metro" 2>&1 &
   METRO_PID=$!
   for _ in $(seq 1 60); do
     curl -s -m 2 "http://localhost:${METRO_PORT}/status" | grep -q "packager-status:running" && break
@@ -53,7 +53,7 @@ case "$PLATFORM" in
     fi
     xcrun simctl terminate "$TARGET" "$APP_ID" 2>/dev/null || true
     xcrun simctl spawn "$TARGET" log stream --level debug \
-      --predicate "process == \"RNDuckDBExample\"" > "$LOG_FILE" 2>&1 &
+      --predicate "process == \"DuckDBReference\"" > "$LOG_FILE" 2>&1 &
     LOG_PID=$!
     sleep 2
     xcrun simctl launch "$TARGET" "$APP_ID" -rnduckdbAutorun "$URL"

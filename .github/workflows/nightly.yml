@@ -19,8 +19,8 @@ jobs:
           bun-version: 1.3.1
       - run: bun install --frozen-lockfile
       - name: Clean build without cache
-        working-directory: example/ios
-        run: pod install
+        working-directory: example
+        run: npx expo prebuild --platform ios
       - name: Rebuild over the previous output
         run: scripts/check-ios-rebuild.sh
       - name: Boot simulator
@@ -28,22 +28,22 @@ jobs:
       - name: Build app
         working-directory: example/ios
         run: >
-          xcodebuild -workspace RNDuckDBExample.xcworkspace -scheme RNDuckDBExample
+          xcodebuild -workspace DuckDBReference.xcworkspace -scheme DuckDBReference
           -configuration Debug -destination "platform=iOS Simulator,name=iPhone 17"
           -derivedDataPath build build
       - name: Install app
-        run: xcrun simctl install booted example/ios/build/Build/Products/Debug-iphonesimulator/RNDuckDBExample.app
+        run: xcrun simctl install booted example/ios/build/Build/Products/Debug-iphonesimulator/DuckDBReference.app
       - name: Run all tests, including network tests
         run: scripts/run-device-tests.sh ios network=1
         env:
-          MIN_PASSED: 166
+          MIN_PASSED: 167
       - name: Install Maestro
         run: |
           curl -fsSL https://get.maestro.mobile.dev | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Start Metro
         working-directory: example
-        run: nohup npx react-native start > metro.log 2>&1 &
+        run: CI=1 nohup npx expo start > metro.log 2>&1 &
       - name: Run Maestro flows
         run: maestro test --test-output-dir maestro-output example/.maestro
       - uses: actions/upload-artifact@v7

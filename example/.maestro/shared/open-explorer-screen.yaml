@@ -1,4 +1,4 @@
-appId: com.rnduckdbexample
+appId: dev.pietgk.duckdbreference
 ---
 # Tapping the active tab twice returns to the Explorer list.
 - tapOn:

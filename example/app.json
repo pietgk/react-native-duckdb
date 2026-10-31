@@ -1,4 +1,36 @@
 {
-  "name": "RNDuckDBExample",
-  "displayName": "DuckDB Explorer"
+  "expo": {
+    "name": "DuckDB Reference",
+    "slug": "duckdb-reference",
+    "version": "1.0.0",
+    "scheme": "rnduckdb",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "dev.pietgk.duckdbreference",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true }
+      }
+    },
+    "android": {
+      "package": "dev.pietgk.duckdbreference",
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      [
+        "@pietgk/react-native-duckdb",
+        {
+          "extensions": ["core_functions", "parquet", "json", "icu", "sqlite_scanner", "httpfs", "fts", "vss"]
+        }
+      ]
+    ]
+  }
 }

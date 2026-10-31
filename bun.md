@@ -40,4 +40,4 @@ bun example android
 - **Workspace commands:** Use `bun --cwd <workspace>` to target specific workspaces
 - **builder-bob:** Works fine under bun — uses `bob build` internally
 - **nitrogen:** Works fine under bun — `bun nitrogen` or `bun package specs`
-- **CocoaPods:** Run `bundle exec pod install` inside `example/ios/` (bun doesn't replace pod)
+- **Native projects:** `example/ios` and `example/android` are generated. Run `npx expo prebuild` in `example/`

@@ -1,4 +1,4 @@
-appId: com.rnduckdbexample
+appId: dev.pietgk.duckdbreference
 ---
 # Any error card or LogBox entry fails the flow that runs this.
 - assertNotVisible:

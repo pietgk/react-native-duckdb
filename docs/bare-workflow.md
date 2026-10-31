@@ -2,6 +2,8 @@
 
 This guide covers setup for bare React Native projects (no Expo managed workflow). For Expo projects, see [expo.md](expo.md).
 
+This package needs React Native 0.85 or later. Earlier versions pin an fmt that does not compile on Xcode 26.
+
 ## Installation
 
 Install the tarball attached to a [GitHub Release](https://github.com/pietgk/react-native-duckdb/releases). This needs no account or token. Change the version in both places when you upgrade.
@@ -153,26 +155,6 @@ The build downloads the DuckDB source with git, so it needs network access and g
 
 ```bash
 bash node_modules/@pietgk/react-native-duckdb/scripts/fetch-duckdb.sh
-```
-
-### iOS build fails in `fmt` on Xcode 26
-
-React Native 0.82 pins fmt 11.0.2, which does not compile on Xcode 26. Build it as C++17 in your `Podfile`, after `react_native_post_install`:
-
-```ruby
-post_install do |installer|
-  react_native_post_install(
-    # ...
-  )
-
-  installer.pods_project.targets.each do |target|
-    next unless target.name == 'fmt'
-
-    target.build_configurations.each do |config|
-      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-    end
-  end
-end
 ```
 
 ### "Unknown extension" build error
