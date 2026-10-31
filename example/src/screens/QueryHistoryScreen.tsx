@@ -7,12 +7,13 @@ import {
   StyleSheet,
   type ListRenderItem,
 } from 'react-native'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import { useTheme } from '../theme'
 import { initQueryStore, getHistory, type HistoryEntry } from '../db/queryStore'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { QueryStackParamList } from '../navigation/types'
+import { monoFont } from '../theme/fonts'
 
 type Props = NativeStackScreenProps<QueryStackParamList, 'QueryHistory'>
 
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
   sqlText: {
     flex: 1,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 12,
     lineHeight: 18,
   },
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   empty: {
     flex: 1,

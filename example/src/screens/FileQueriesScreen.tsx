@@ -13,8 +13,9 @@ import { useTheme } from '../theme'
 import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { QueryStatusBar } from '../components/StatusBar'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import books from '../data/books.json'
+import { monoFont } from '../theme/fonts'
 
 const ACCENT = '#FF6900'
 
@@ -394,7 +395,7 @@ const styles = StyleSheet.create({
   fileName: {
     fontSize: 14,
     fontWeight: '600',
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
   },
   typeBadge: {
     paddingHorizontal: 6,
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   promptChar: {
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 13,
     lineHeight: 20,
     fontWeight: '700',
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   queryInput: {
     minHeight: 80,
     fontSize: 13,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     lineHeight: 20,
     paddingHorizontal: 8,
     paddingTop: 8,

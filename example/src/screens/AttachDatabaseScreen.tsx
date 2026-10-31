@@ -11,6 +11,7 @@ import type { Database } from '@pietgk/react-native-duckdb'
 import { ResultTable } from '../components/ResultTable'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 type StepStatus = 'locked' | 'ready' | 'done'
 
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
   stepButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   sqlPreview: { marginTop: 10, padding: 10, borderRadius: 6 },
   errorBox: { marginTop: 8, padding: 8, borderWidth: 1, borderRadius: 6 },
-  errorText: { fontSize: 12, fontFamily: 'monospace' },
+  errorText: { fontSize: 12, fontFamily: monoFont },
   resultText: { fontSize: 13, marginTop: 8 },
   tableWrapper: { marginTop: 10 },
   resetButton: {

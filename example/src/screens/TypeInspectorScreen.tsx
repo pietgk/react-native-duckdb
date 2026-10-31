@@ -11,6 +11,7 @@ import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import type { Database } from '@pietgk/react-native-duckdb'
 import { SQLHighlighter } from '../components/SQLHighlighter'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 interface TypeEntry {
   name: string
@@ -335,17 +336,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  typeName: { fontSize: 14, fontWeight: '700', fontFamily: 'monospace' },
-  duckdbType: { fontSize: 12, fontFamily: 'monospace' },
+  typeName: { fontSize: 14, fontWeight: '700', fontFamily: monoFont },
+  duckdbType: { fontSize: 12, fontFamily: monoFont },
   unsupportedBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   unsupportedText: { fontSize: 10, fontWeight: '600' },
   valueRow: { marginTop: 6 },
-  jsType: { fontSize: 11, fontFamily: 'monospace', marginBottom: 2 },
-  jsValue: { fontSize: 12, fontFamily: 'monospace' },
+  jsType: { fontSize: 11, fontFamily: monoFont, marginBottom: 2 },
+  jsValue: { fontSize: 12, fontFamily: monoFont },
   expandedInfo: { marginTop: 10, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
   sqlBox: { padding: 8, borderRadius: 6, marginBottom: 8 },
   notesText: { fontSize: 12, lineHeight: 18 },
-  roundtripText: { fontSize: 11, fontFamily: 'monospace', marginTop: 6 },
+  roundtripText: { fontSize: 11, fontFamily: monoFont, marginTop: 6 },
   loadingText: { fontSize: 14 },
   errorText: { fontSize: 14, textAlign: 'center', padding: 20 },
 })

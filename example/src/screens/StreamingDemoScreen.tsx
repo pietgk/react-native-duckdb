@@ -11,6 +11,7 @@ import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import type { StreamingResult, QueryResult, Database } from '@pietgk/react-native-duckdb'
 import { ResultTable } from '../components/ResultTable'
 import { useTheme } from '../theme'
+import { monoFont } from '../theme/fonts'
 
 type Status = 'idle' | 'generating' | 'streaming' | 'complete' | 'cancelled' | 'error'
 
@@ -286,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  statValue: { fontSize: 18, fontWeight: '700', fontFamily: 'monospace' },
+  statValue: { fontSize: 18, fontWeight: '700', fontFamily: monoFont },
   statLabel: { fontSize: 11, marginTop: 2 },
   errorBox: {
     padding: 12,
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
   },
-  errorText: { fontSize: 13, fontFamily: 'monospace' },
+  errorText: { fontSize: 13, fontFamily: monoFont },
   previewSection: { marginTop: 8 },
   previewTitle: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
 })

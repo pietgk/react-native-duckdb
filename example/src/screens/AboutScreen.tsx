@@ -9,7 +9,8 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import type { IconName } from '../theme/icons'
 import { SvgXml } from 'react-native-svg'
 import { HybridDuckDB } from '@pietgk/react-native-duckdb'
 import type { Database } from '@pietgk/react-native-duckdb'
@@ -18,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme'
 import { brand } from '../theme/colors'
 import { version as PKG_VERSION } from '../../../package/package.json'
+import { monoFont } from '../theme/fonts'
 
 function getRNVersion(): string {
   const { major, minor, patch } = Platform.constants.reactNativeVersion
@@ -52,13 +54,13 @@ const REPO_URL = 'https://github.com/pietgk/react-native-duckdb'
 const RELEASES_URL = 'https://github.com/pietgk/react-native-duckdb/releases'
 const ISSUES_URL = 'https://github.com/pietgk/react-native-duckdb/issues'
 
-const EXTENSIONS = [
+const EXTENSIONS: { name: string; icon: IconName; color: string; desc: string }[] = [
   { name: 'httpfs', icon: 'cloud-download-outline', color: brand.blue, desc: 'Query remote Parquet, CSV & JSON over HTTP/S3' },
   { name: 'fts', icon: 'text-search', color: brand.green, desc: 'Full-text search with BM25 ranking' },
   { name: 'vss', icon: 'vector-combine', color: brand.purple, desc: 'Vector similarity search with HNSW indexes' },
 ]
 
-const LINKS = [
+const LINKS: { label: string; icon: IconName; url: string }[] = [
   { label: 'GitHub Repository', icon: 'github', url: REPO_URL },
   { label: 'Releases', icon: 'tag-outline', url: RELEASES_URL },
   { label: 'Report an Issue', icon: 'bug-outline', url: ISSUES_URL },
@@ -107,12 +109,12 @@ export function AboutScreen() {
       {/* Header */}
       <View style={styles.header}>
         <SvgXml xml={LOGO_SVG} width={80} height={72} />
-        <Text style={[styles.title, { color: colors.text }]}>DuckDB Explorer</Text>
+        <Text style={[styles.title, { color: colors.text }]}>DuckDB Reference</Text>
         <Text style={[styles.tagline, { color: colors.accentText }]}>
           The analytical database in your pocket
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Powered by react-native-duckdb & Nitro Modules
+          Powered by @pietgk/react-native-duckdb & Nitro Modules
         </Text>
       </View>
 
@@ -307,9 +309,9 @@ export function AboutScreen() {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
-            const subject = encodeURIComponent('DuckDB Explorer - Feedback')
+            const subject = encodeURIComponent('DuckDB Reference - Feedback')
             const body = encodeURIComponent(
-              `\n\n---\nApp: DuckDB Explorer v${PKG_VERSION}\nDuckDB: ${duckdbVersion ?? 'unknown'}\nRN: ${getRNVersion()}\nPlatform: ${Platform.OS} ${Platform.Version}\nArch: ${getIsNewArch() ? 'New' : 'Legacy'}\nBridge: Nitro Modules (JSI)`,
+              `\n\n---\nApp: DuckDB Reference v${PKG_VERSION}\nDuckDB: ${duckdbVersion ?? 'unknown'}\nRN: ${getRNVersion()}\nPlatform: ${Platform.OS} ${Platform.Version}\nArch: ${getIsNewArch() ? 'New' : 'Legacy'}\nBridge: Nitro Modules (JSI)`,
             )
             openLink(`mailto:pranshuchittora17@gmail.com?subject=${subject}&body=${body}`)
           }}>
@@ -359,8 +361,8 @@ const styles = StyleSheet.create({
   versionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   versionLabel: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   versionKey: { fontSize: 14, fontWeight: '500' },
-  versionValue: { fontSize: 14, fontWeight: '700', fontFamily: 'monospace' },
-  pathValue: { fontSize: 11, fontFamily: 'monospace', marginTop: -2, marginBottom: 6, paddingHorizontal: 4 },
+  versionValue: { fontSize: 14, fontWeight: '700', fontFamily: monoFont },
+  pathValue: { fontSize: 11, fontFamily: monoFont, marginTop: -2, marginBottom: 6, paddingHorizontal: 4 },
   queryHint: { marginTop: 6, paddingTop: 8, opacity: 0.7 },
   divider: { height: 1, marginVertical: 6 },
   archBanner: {
@@ -380,7 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   extHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  extName: { fontSize: 15, fontWeight: '600', fontFamily: 'monospace' },
+  extName: { fontSize: 15, fontWeight: '600', fontFamily: monoFont },
   extDesc: { fontSize: 13, lineHeight: 18 },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   linkLabel: { flex: 1, fontSize: 14 },
