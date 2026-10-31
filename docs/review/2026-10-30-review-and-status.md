@@ -291,14 +291,14 @@ Upstream PRs:
 
 ## 10. Progress
 
-M0 to M2 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1). M3 is on branch `m3-packaging`. No release has been published.
+M0 to M3 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1) and [PR #2](https://github.com/pietgk/react-native-duckdb/pull/2). [`v1.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v1.0.0) is published.
 
 | Milestone | State | Result |
 |---|---|---|
 | M0 Stabilise | Done | Fixes committed, LICENSE added, PR #1 and PR #3 applied with the agreed changes, DuckDB 1.4.5. First Android run passed |
-| M1 Safety net | CI runs on GitHub, branch protection not set | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. A failing check shows on the PR but does not block merging until `main` requires it |
+| M1 Safety net | Done | ESLint, Jest, autorun harness, testIDs, Maestro flows and workflows are in place. `main` requires `checks`, `ios` and `android` |
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
-| M3 Packaging | Exit check met | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. No release made yet |
+| M3 Packaging | Done | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. `v1.0.0` released |
 | M4 onward | Not started | |
 
 Verified on the final code:
@@ -325,7 +325,9 @@ The package is not published to npmjs.com, so there is no npm package to maintai
 | GitHub Release asset | URL, no token | No version ranges or `npm update` |
 | GitHub Packages | By name, with a `read:packages` token | GitHub requires a token even for public packages, so every consumer and EAS build needs one |
 
-The Release asset is the default in the docs because it needs no setup. npm provenance is replaced by a GitHub attestation on the tarball. No release has been made yet, so neither path has been exercised end to end.
+The Release asset is the default in the docs because it needs no setup. npm provenance is replaced by a GitHub attestation on the tarball.
+
+`v1.0.0` verified from the published asset: anonymous download, attestation passes and matches the downloaded file, and a new iOS app built from the URL with no credentials passes the smoke test. GitHub Packages was published to, but installing from it with a token has not been tried. The package came out public because it is linked to this public repository.
 
 ### Corrections to the review
 
@@ -353,8 +355,7 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 
 ### Open
 
-- `main` does not require CI yet. Branch protection on the fork finishes M1's exit check
-- The nightly workflow has not run yet. It needs to be on the default branch, so its first run follows the M3 merge
+- The nightly workflow has not run yet
 - The Android package install test is manual. Nightly covers iOS only
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
 - A physical device has not been run

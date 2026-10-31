@@ -10,6 +10,8 @@ set -euo pipefail
 #   DEVICE       simulator UDID or adb serial (default: booted simulator, or adb default)
 #   METRO_PORT   default 8081
 #   WORK_DIR     default a new temporary directory, kept for inspection
+#   PACKAGE_SOURCE  install this tarball path or URL instead of packing the repo,
+#                   for example a GitHub Release asset
 
 PLATFORM="${1:?usage: check-package-install.sh ios|android}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -36,8 +38,12 @@ trap cleanup EXIT
 echo "=== Working in ${WORK_DIR} ==="
 
 if [ ! -d "$APP_DIR" ]; then
-  (cd "$PACKAGE_DIR" && bun run build && npm pack --pack-destination "$WORK_DIR")
-  TARBALL="$(ls "$WORK_DIR"/*.tgz)"
+  if [ -n "${PACKAGE_SOURCE:-}" ]; then
+    TARBALL="$PACKAGE_SOURCE"
+  else
+    (cd "$PACKAGE_DIR" && bun run build && npm pack --pack-destination "$WORK_DIR")
+    TARBALL="$(ls "$WORK_DIR"/*.tgz)"
+  fi
 
   (cd "$WORK_DIR" && npx --yes @react-native-community/cli@latest init SmokeApp \
     --version "$RN_VERSION" --package-name "$APP_ID" --skip-install --skip-git-init)
@@ -61,11 +67,12 @@ fi
 case "$PLATFORM" in
   ios)
     TARGET="${DEVICE:-booted}"
+    SIMULATOR_ID="${DEVICE:-$(xcrun simctl list devices booted | grep -oE '[0-9A-F-]{36}' | head -1)}"
     # fmt 11.0.2 in react-native 0.82 does not compile on Xcode 26. See example/ios/Podfile.
     ruby -i -0pe 'sub(/(react_native_post_install\(.*?\n\s*\)\n)/m) { "#{$1}    installer.pods_project.targets.select { |t| t.name == \"fmt\" }.each { |t| t.build_configurations.each { |c| c.build_settings[\"CLANG_CXX_LANGUAGE_STANDARD\"] = \"c++17\" } }\n" }' "${APP_DIR}/ios/Podfile"
     (cd "${APP_DIR}/ios" && pod install)
     (cd "${APP_DIR}/ios" && xcodebuild -workspace SmokeApp.xcworkspace -scheme SmokeApp \
-      -configuration Debug -destination "platform=iOS Simulator,id=$(xcrun simctl list devices booted | grep -oE '[0-9A-F-]{36}' | head -1)" \
+      -configuration Debug -destination "platform=iOS Simulator,id=${SIMULATOR_ID}" \
       -derivedDataPath build build > "${WORK_DIR}/xcodebuild.log" 2>&1) ||
       { tail -40 "${WORK_DIR}/xcodebuild.log"; exit 1; }
     xcrun simctl install "$TARGET" "${APP_DIR}/ios/build/Build/Products/Debug-iphonesimulator/SmokeApp.app"
@@ -115,7 +122,7 @@ esac
 
 for _ in $(seq 1 120); do
   if grep -q '\[SMOKE PASS\]' "$LOG_FILE"; then
-    echo "${PLATFORM}: smoke test passed from the packed tarball"
+    echo "${PLATFORM}: smoke test passed"
     exit 0
   fi
   if grep -q '\[SMOKE FAIL\]' "$LOG_FILE"; then
