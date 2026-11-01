@@ -15,7 +15,9 @@ measure() {
 
 BEFORE="$(measure)"
 rm -f "${PACKAGE_DIR}/DuckDB.xcframework.key"
-bash "${PACKAGE_DIR}/scripts/build-duckdb-ios.sh" "$@"
+# The podspec sets this during pod install. Without it the build cannot find the
+# app's extension list, and would rebuild with a different one.
+RNDUCKDB_APP_IOS_DIR="${REPO_DIR}/example/ios" bash "${PACKAGE_DIR}/scripts/build-duckdb-ios.sh" "$@"
 AFTER="$(measure)"
 
 echo "before: ${BEFORE}"
