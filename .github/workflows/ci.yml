@@ -74,7 +74,7 @@ jobs:
       - name: Run tests
         run: scripts/run-device-tests.sh ios
         env:
-          MIN_PASSED: 160
+          MIN_PASSED: 164
           RESULT_FILE: test-results-ios.json
       - uses: actions/upload-artifact@v7
         if: always()
@@ -121,7 +121,7 @@ jobs:
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          MIN_PASSED: 160
+          MIN_PASSED: 164
           RESULT_FILE: test-results-android.json
         with:
           api-level: 36
