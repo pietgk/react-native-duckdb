@@ -107,8 +107,8 @@ export function AboutScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}>
+      style={[styles.container, { backgroundColor: colors.background, marginTop: insets.top }]}
+      contentContainerStyle={styles.content}>
 
       {/* Header */}
       <View style={styles.header}>
@@ -269,15 +269,17 @@ export function AboutScreen() {
 
       {/* Extensions */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Extensions in Example App</Text>
-      {EXTENSIONS.map((ext) => (
-        <View key={ext.name} style={[styles.extCard, { backgroundColor: colors.surface, borderLeftColor: ext.color }]}>
-          <View style={styles.extHeader}>
-            <MaterialCommunityIcons name={ext.icon} size={22} color={ext.color} />
-            <Text style={[styles.extName, { color: colors.text }]}>{ext.name}</Text>
+      <View style={styles.extList}>
+        {EXTENSIONS.map((ext) => (
+          <View key={ext.name} style={[styles.extCard, { backgroundColor: colors.surface, borderLeftColor: ext.color }]}>
+            <View style={styles.extHeader}>
+              <MaterialCommunityIcons name={ext.icon} size={22} color={ext.color} />
+              <Text style={[styles.extName, { color: colors.text }]}>{ext.name}</Text>
+            </View>
+            <Text style={[styles.extDesc, { color: colors.textSecondary }]}>{ext.desc}</Text>
           </View>
-          <Text style={[styles.extDesc, { color: colors.textSecondary }]}>{ext.desc}</Text>
-        </View>
-      ))}
+        ))}
+      </View>
 
       {/* Links */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Links</Text>
@@ -361,6 +363,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   archText: { flex: 1, fontSize: 13, fontWeight: '500' },
+  extList: { marginBottom: 10 },
   extCard: {
     borderLeftWidth: 3,
     borderRadius: 10,
