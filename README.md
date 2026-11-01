@@ -51,7 +51,7 @@ Download DuckDB Explorer — a free companion app to try everything before writi
 Install the tarball attached to a [GitHub Release](https://github.com/pietgk/react-native-duckdb/releases). This needs no account or token:
 
 ```bash
-npm install https://github.com/pietgk/react-native-duckdb/releases/download/v1.0.0/pietgk-react-native-duckdb-1.0.0.tgz react-native-nitro-modules
+npm install https://github.com/pietgk/react-native-duckdb/releases/download/v2.0.0/pietgk-react-native-duckdb-2.0.0.tgz react-native-nitro-modules
 ```
 
 Or install from GitHub Packages, which gives you version ranges and `npm update` but needs a token even though the package is public. See [Installing from GitHub Packages](docs/bare-workflow.md#installing-from-github-packages).

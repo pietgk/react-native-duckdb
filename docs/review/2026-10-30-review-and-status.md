@@ -291,7 +291,7 @@ Upstream PRs:
 
 ## 10. Progress
 
-M0 to M3 are merged to `main` on the fork through [PR #1](https://github.com/pietgk/react-native-duckdb/pull/1) and [PR #2](https://github.com/pietgk/react-native-duckdb/pull/2). [`v1.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v1.0.0) is published.
+M0 to M5 are merged to `main` on the fork. [`v1.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v1.0.0) is published, and predates M4 and M5.
 
 | Milestone | State | Result |
 |---|---|---|
@@ -300,7 +300,7 @@ M0 to M3 are merged to `main` on the fork through [PR #1](https://github.com/pie
 | M2 Native correctness | Done | Every open native finding reproduced with a failing test, then fixed |
 | M3 Packaging | Done | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. `v1.0.0` released |
 | M4 Expo SDK 58 | Done | Example converted: native projects are generated from `app.json`. Suite passes on both platforms. EAS not tried |
-| M5 DuckDB 2.0 LTS | On branch `m5-duckdb2` | A real 1.4 database opens on 2.0 after an in-place app upgrade on both platforms, with identical results. Full suite passes |
+| M5 DuckDB 2.0 LTS | Done | A real 1.4 database opens on 2.0 after an in-place app upgrade on both platforms, with identical results. Full suite passes |
 | M6 onward | Not started | |
 
 Verified on the final code:
