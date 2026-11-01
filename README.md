@@ -11,7 +11,7 @@
 
 ---
 
-> This is a maintained fork of [react-native-duckdb](https://github.com/pranshuchittora/react-native-duckdb) by Pranshu Chittora. It is published as `@pietgk/react-native-duckdb`. DuckDB Explorer below is the original project's app.
+> Based on [react-native-duckdb](https://github.com/pranshuchittora/react-native-duckdb) by Pranshu Chittora, which is no longer actively maintained (last commit February 2026). This project continues that work on current React Native, Expo and DuckDB versions, and is published as `@pietgk/react-native-duckdb`.
 
 The analytical database for React Native. Run OLAP queries, full-text search, and vector similarity search on iOS and Android with native C++ performance via [Nitro Modules](https://nitro.margelo.com/).
 
@@ -28,13 +28,7 @@ The analytical database for React Native. Run OLAP queries, full-text search, an
 
 ## Try It Now
 
-Download DuckDB Explorer — a free companion app to try everything before writing a single line of code. Interactive SQL runner, Hugging Face dataset browser, full-text search, vector similarity search, and more.
-
-<p align="center">
-  <a href="https://apps.apple.com/app/duckdb-explorer/id6742978562"><img src="https://img.shields.io/badge/App_Store-0D96F6?style=for-the-badge&logo=app-store&logoColor=white" alt="App Store" /></a>
-  &nbsp;
-  <a href="https://play.google.com/store/apps/details?id=com.rnduckdbexample"><img src="https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white" alt="Google Play" /></a>
-</p>
+The screenshots show DuckDB Explorer, the original project's companion app. The app in [`example/`](example) comes from the same code: interactive SQL runner, Hugging Face dataset browser, full-text search, vector similarity search, and more.
 
 <p align="center">
   <img src="docs/screenshots/screenshot-1.png" width="13%" />
@@ -45,6 +39,16 @@ Download DuckDB Explorer — a free companion app to try everything before writi
   <img src="docs/screenshots/screenshot-6.png" width="13%" />
   <img src="docs/screenshots/screenshot-7.png" width="13%" />
 </p>
+
+To run it on a simulator or emulator, use [bun](https://bun.sh):
+
+```bash
+bun install
+cd example
+bun run ios
+```
+
+Use `bun run android` for Android. The first build compiles DuckDB, which takes a while.
 
 ## Installation
 
@@ -317,15 +321,29 @@ These are complementary paradigms. Use SQLite-based libraries for your app's tra
 
 ## Built with AI
 
-I started working on this library in late 2023. The initial prototype took a full week and could barely run basic SQL statements — no extensions, no streaming, no type system. It proved the concept but was nowhere near production quality.
+### The original library
 
-Fast forward to Feb 2026: with the help of LLMs, I rebuilt the entire library from scratch — production-grade, fully documented, with 11 statically-linked extensions, 30+ type mappings, streaming, vector search, full-text search, and an example app that doubles as a DuckDB dev studio. **The entire rebuild took under one week.**
+Pranshu Chittora started this library in late 2023. The first prototype took a full week and could barely run basic SQL statements: no extensions, no streaming, no type system.
 
-The stack: [Claude Opus 4 (claude-4-6)](https://www.anthropic.com/) running through [opencode](https://opencode.ai/), orchestrated by the [Get Shit Done](https://github.com/nicekitchen/get-shit-done) framework for structured multi-phase execution. The total inference cost was roughly **~$1,500**.
+In February 2026 it was rebuilt from scratch with the help of LLMs, with 11 statically linked extensions, 30+ type mappings, streaming, vector search, full-text search, and an example app that doubles as a DuckDB dev studio. **The rebuild took under one week.**
 
-But here's the thing — AI didn't make the decisions. I have extensive experience building React Native libraries, especially data libraries, and every architectural choice, every API design trade-off, every verification pass, every device test was done by a real human. The AI handled the volume; I handled the vision.
+The stack was [Claude Opus 4 (claude-4-6)](https://www.anthropic.com/) running through [opencode](https://opencode.ai/), orchestrated by the [Get Shit Done](https://github.com/nicekitchen/get-shit-done) framework, for roughly **$1,500** of inference. The architecture, API design, verification and device testing stayed with the author.
 
-We're at the beginning of something massive. A single developer with the right tools can now ship what used to require a dedicated team and months of runway. The barrier to building ambitious software is collapsing. This library is proof.
+### The upgrade to current versions
+
+From 30 October to 1 November 2026, this project was brought up to date with [Claude Opus 5.5](https://www.anthropic.com/) running in [Claude Code](https://claude.com/claude-code):
+
+| | Original | Now |
+|---|---|---|
+| React Native | 0.82.1 | 0.88.1 |
+| React | 19.1.1 | 19.3.0 |
+| Nitro Modules | 0.33.9 | 0.37.1 |
+| DuckDB | 1.4.4 | 2.0.0 LTS |
+| Example app | Bare React Native | Expo SDK 58 |
+
+This was more than a version bump. DuckDB 2.0 changed much of its C++ API and how extensions are linked, so the native layer was ported. The work started with a [written review](docs/review/2026-10-30-review-and-status.md), and each native bug it found was reproduced with a failing test before it was fixed. The in-app test suite now runs on iOS and Android on every pull request, and the 2.0.0 code also passed it on a real iPhone.
+
+Claude did the work; the decisions stayed with the maintainer, including the project's direction, how it is distributed, and each merge and release.
 
 ## License
 
