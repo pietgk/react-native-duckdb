@@ -9,9 +9,11 @@ module.exports = (api) => {
       [
         'module-resolver',
         {
+          cwd: __dirname,
           extensions: ['.tsx', '.ts', '.js', '.json'],
+          // Relative, because Metro's cache is shared by every checkout on the machine.
           alias: {
-            [pak.name]: path.join(__dirname, '../package', pak.source),
+            [pak.name]: path.join('../package', pak.source),
           },
         },
       ],
