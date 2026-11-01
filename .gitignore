@@ -29,5 +29,6 @@ local.properties
 
 # Misc
 .DS_Store
+test-results*.json
 *.tsbuildinfo
 *.log
