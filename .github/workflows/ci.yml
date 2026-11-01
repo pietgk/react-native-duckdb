@@ -74,6 +74,9 @@ jobs:
     env:
       CMAKE_C_COMPILER_LAUNCHER: ccache
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      # Gradle reinstalls the NDK on every run, which gives the compiler a new
+      # mtime and makes ccache's default check miss every time.
+      CCACHE_COMPILERCHECK: content
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
