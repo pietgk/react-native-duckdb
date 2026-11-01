@@ -334,6 +334,29 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 
 `v2.0.0` verified the same way, and on Android as well: anonymous download, attestation passes, a token-free `npm install` works, and new apps built from the URL on iOS and Android pass the smoke test.
 
+### Leaving the fork network
+
+The repository left upstream's fork network, so it now shows as its own project (`fork=false`). GitHub's warning about the change was broader than what happened here. All of this was checked afterwards and survived:
+
+- All 8 pull requests and both releases
+- The install URL, which still returns 200 to an anonymous request
+- The attestation on the tarball, which still verifies
+- Branch protection on `main` and the `release` environment
+
+Pull requests to upstream can no longer come from this repository. They need a separate fork.
+
+### Storage format decision
+
+We keep DuckDB's default for new files and add no 1.4 support of our own: no new API, no change of default and no automatic upgrade. Files from 1.4 already open, and they stay in their format when 2.0 writes to them. `open(path, { storage_compatibility_version: 'v1.4.0' })` is there for sharing a file with an older DuckDB, and permanent tests now cover it. An automatic upgrade would be slow and memory-hungry at app start, for little gain.
+
+This was tested with the real 1.4.5, 1.5.6 and 2.0.0 CLIs, and through the package in `example/src/tests/storage.test.ts`. `docs/upgrading-to-duckdb-2.md` has the results and the upgrade recipe. What the testing changed:
+
+- A file from 1.4 is `v1.0.0`, not `v1.4.0`, because DuckDB before 2.0 does not move new files to its newest format. The upgrade test starts from `v1.0.0` for this reason
+- `v1.4.0` written by 2.0 gives up nothing we could measure against `v2.0.0` in file size, open time or memory, and it already uses `DICT_FSST`. The default stays because no reason to change it was found, not because `v1.4.0` is worse
+- The 2.0 format's benefit is small. A 1,001-column table opens about 7 ms faster on an M1 Pro and uses 3 MB less memory, and file size barely changes. Upgrading is documented as optional
+- `COPY FROM DATABASE` works as the upgrade route, with FTS and HNSW indexes. DuckDB's docs only show it for downgrades, and their `EXPORT DATABASE` recipe needs the old binary, which a phone does not have
+- The copy runs out of memory on the default 256 MB limit somewhere between 500 and 750 columns. It fails cleanly and can be retried with a higher limit
+
 ### Expo decisions
 
 - The spike passed, so there was no need for the SDK 57 fallback or a nightly: stable Nitro 0.37.1 works on React Native 0.88.1 and SDK 58 with precompiled React Native on iOS. Nitro 0.37 needs React Native 0.85 or later on Xcode 26, because its module pulls in the fmt that 0.82 pins
@@ -353,6 +376,7 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 
 ### Corrections to the review
 
+- M5 and `docs/upgrading-to-duckdb-2.md` said 1.4 databases keep working on 2.0 "including their indexes". That was tested on a small database and does not hold for FTS at scale. See "Found since the review".
 - `close()` during a query was labelled "Read from code; 8 UI attempts did not crash". It hung the app when tested directly.
 - PR #1 was verified by the first Android build: `libduckdb.so` is no longer packaged.
 - The build depended on a bun version. The pinned bun 1.3.1 defaults to the isolated linker, which removes paths the native builds use. `bunfig.toml` now requires the hoisted linker.
@@ -377,6 +401,7 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 | HTTPS failed on Android with DuckDB 2.0, which verifies certificates but only looks in Linux locations | Fixed. Android joins the system roots into a bundle at startup. iOS builds curl 8.23 with Apple's trust store. A permanent test checks that self-signed and expired certificates are refused. Network tests only run nightly, so a no-network test now checks the Android bundle on every PR |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
+| Searches on an FTS index built by 1.4 can run out of memory on 2.0, including in `v2.0.0`. With 20,000 documents, a search that took 55 MB on 1.4.5 fails on the default 256 MB limit. It reproduces through this package on the iOS simulator | Documented, because the data is in the user's file. The index stores its macro, so the 1.4 macro stays and a file upgrade copies it. `PRAGMA create_fts_index(..., overwrite = 1)` fixes it. Not reported to DuckDB yet |
 | The nightly rebuild check reported `rebuilding changed the library`: 361 members instead of 1851 | Fixed. The check did not pass the app's directory, so the rebuild used the default extension list. The library itself was fine |
 
 ### Open
