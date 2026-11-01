@@ -9,6 +9,23 @@
 | Rebuild check | Rebuilding over the previous iOS output | `scripts/check-ios-rebuild.sh` | Nightly |
 | Package install | The packed tarball in a new app outside the repo | `scripts/check-package-install.sh ios` | Nightly |
 
+Pull requests that only change `docs/` or Markdown files skip the iOS and Android jobs.
+
+## Before pushing
+
+`mise.toml` pins the tools CI uses. After [installing mise](https://mise.jdx.dev), run `mise trust` and `mise install` once.
+
+```bash
+scripts/ci-local.sh ios
+scripts/ci-local.sh android
+```
+
+Each command runs the same build as CI, installs the app and runs the in-app suite. It is much faster than waiting for CI, because this machine keeps its build output and has more cores. The first build compiles DuckDB.
+
+- iOS uses the `iPhone 17` simulator. Set `SIMULATOR` to use another. Other booted simulators are left alone
+- Android builds for this machine, which is arm64-v8a on Apple silicon. CI tests x86_64, so a local run also covers the architecture real devices use
+- Stop Metro first. The script refuses to run if Metro is on port 8081, because it could be serving another checkout
+
 ## In-app suite
 
 The example app registers its tests in `example/src/tests/`. Run them from the Tests tab, or without touching the UI:

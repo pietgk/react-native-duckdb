@@ -8,8 +8,17 @@ tags:
     visible:
       id: tab-tests
     timeout: 20000
-- tapOn:
-    id: tab-tests
+# Keep tapping, because a tap during startup can be lost with no error.
+- repeat:
+    while:
+      notVisible:
+        id: run-all
+    times: 5
+    commands:
+      - tapOn:
+          id: tab-tests
+      - waitForAnimationToEnd:
+          timeout: 1200
 - tapOn:
     id: run-all
 - extendedWaitUntil:
