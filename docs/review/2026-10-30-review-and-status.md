@@ -291,7 +291,7 @@ Upstream PRs:
 
 ## 10. Progress
 
-M0 to M5 are merged to `main` on the fork. [`v1.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v1.0.0) is published, and predates M4 and M5.
+M0 to M5 are merged to `main` on the fork. [`v2.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v2.0.0) is published and contains all of them. [`v1.0.0`](https://github.com/pietgk/react-native-duckdb/releases/tag/v1.0.0) predates M4 and M5.
 
 | Milestone | State | Result |
 |---|---|---|
@@ -301,20 +301,21 @@ M0 to M5 are merged to `main` on the fork. [`v1.0.0`](https://github.com/pietgk/
 | M3 Packaging | Done | The packed tarball installs in a new app outside the repo, builds DuckDB from nothing and passes a smoke test on iOS and Android. `v1.0.0` released |
 | M4 Expo SDK 58 | Done | Example converted: native projects are generated from `app.json`. Suite passes on both platforms. EAS not tried |
 | M5 DuckDB 2.0 LTS | Done | A real 1.4 database opens on 2.0 after an in-place app upgrade on both platforms, with identical results. Full suite passes |
-| M6 onward | Not started | |
+| M6 onward | Not started | Not needed for 2.0 |
 
-Verified on the final code:
+Verified on the `v2.0.0` code. CI and nightly ran on the last branch commit, and the merge to `main` has the same tree:
 
 | Check | Result |
 |---|---|
-| Typecheck, ESLint, Jest (28 tests), actionlint, shellcheck | Pass |
-| iOS simulator, debug, arm64 | 157 passed, 0 failed, 10 of 10 runs |
-| Android emulator API 36, debug, arm64 | 157 passed, 0 failed, 10 of 10 runs |
-| Android emulator API 36, release, arm64, no Metro | 164 of 164 passed, 5 of 5 runs, before the last two fixes. Not repeated |
-| Android x86_64 on the CI emulator | First run: 154 passed, 1 failed, which found the `start()` bug below |
-| Maestro flows on iOS | 4 of 4 pass, last run before M2 |
-| Packed tarball in a new app, iOS and Android | Smoke test passes on both |
-| Extension change recipe | Followed on both platforms. A plain `pod install` misses the change, the documented steps rebuild, and a repeat with no change skips in 12 seconds |
+| Typecheck, ESLint, Jest (30 tests) | Pass |
+| CI, iOS simulator, no network tests | 160 passed, 0 failed |
+| CI, Android emulator, no network tests | 160 passed, 0 failed |
+| Nightly, iOS simulator, with network tests | 170 passed, 0 failed |
+| iPhone 16e, Release build, with network tests | 170 passed, 0 failed |
+| Maestro flows on iOS | 4 of 4 pass |
+| iOS rebuild over the previous output | Identical: 133,866,376 bytes, 1851 members |
+| Published tarball in a new app, iOS and Android | Smoke test passes on both, built from the public URL with no credentials |
+| Extension change recipe | Followed on both platforms before M4. A plain `pod install` misses the change, the documented steps rebuild, and a repeat with no change skips in 12 seconds |
 
 The harness was checked for false passes. A deliberate failing test exits 1 on both platforms, and the two original bugs (stray `)}` and `INSTALL httpfs`) were reintroduced and caught. The second showed a blind spot, now closed: an error card can be cleared by the next query, so flows check when a screen opens.
 
@@ -330,6 +331,8 @@ The package is not published to npmjs.com, so there is no npm package to maintai
 The Release asset is the default in the docs because it needs no setup. npm provenance is replaced by a GitHub attestation on the tarball.
 
 `v1.0.0` verified from the published asset: anonymous download, attestation passes and matches the downloaded file, and a new iOS app built from the URL with no credentials passes the smoke test. GitHub Packages was published to, but installing from it with a token has not been tried. The package came out public because it is linked to this public repository.
+
+`v2.0.0` verified the same way, and on Android as well: anonymous download, attestation passes, a token-free `npm install` works, and new apps built from the URL on iOS and Android pass the smoke test.
 
 ### Expo decisions
 
@@ -374,10 +377,12 @@ The Release asset is the default in the docs because it needs no setup. npm prov
 | HTTPS failed on Android with DuckDB 2.0, which verifies certificates but only looks in Linux locations | Fixed. Android joins the system roots into a bundle at startup. iOS builds curl 8.23 with Apple's trust store. A permanent test checks that self-signed and expired certificates are refused. Network tests only run nightly, so a no-network test now checks the Android bundle on every PR |
 | Timing-dependent tests failed at random: HNSW speed and progress callbacks | Fixed. The HNSW test checks the query plan, and the progress tests use a larger table |
 | Tests assumed connections they discarded stayed open, which failed in release builds | Fixed. Garbage collection removes such connections |
+| The nightly rebuild check reported `rebuilding changed the library`: 361 members instead of 1851 | Fixed. The check did not pass the app's directory, so the rebuild used the default extension list. The library itself was fine |
 
 ### Open
 
 - The Android package install test is manual. Nightly covers iOS only
 - EAS builds have not been tried. The `sdk-58` image uses Xcode 27.1, which this package has not been built on
 - Maestro on Android: the adb connection to the emulator drops when Maestro connects, with a second emulator running on this Mac. Nightly CI runs Maestro on iOS only until this is understood
-- A physical device has not been run. This matters most for iOS HTTPS: the simulator can read the host Mac's `/etc/ssl/cert.pem`, so a simulator pass does not prove Apple's trust store path works on an iPhone
+- No physical Android device has been run. The iOS HTTPS risk is closed: the simulator can read the host Mac's `/etc/ssl/cert.pem`, so only a real device proves Apple's trust store path, and the iPhone 16e run passed
+- Installing from GitHub Packages with a token has not been tried. It was agreed this is not needed, since the docs lead with the Release asset
