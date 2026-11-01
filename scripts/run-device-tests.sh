@@ -48,8 +48,11 @@ fi
 case "$PLATFORM" in
   ios)
     TARGET="${DEVICE:-booted}"
+    # The app keeps this setting, so a run on the default port has to clear it.
     if [ "$METRO_PORT" != "8081" ]; then
       xcrun simctl spawn "$TARGET" defaults write "$APP_ID" RCT_jsLocation "localhost:${METRO_PORT}"
+    else
+      xcrun simctl spawn "$TARGET" defaults delete "$APP_ID" RCT_jsLocation 2>/dev/null || true
     fi
     xcrun simctl terminate "$TARGET" "$APP_ID" 2>/dev/null || true
     xcrun simctl spawn "$TARGET" log stream --level debug \
@@ -62,10 +65,13 @@ case "$PLATFORM" in
     ADB=(adb)
     if [ -n "${DEVICE:-}" ]; then ADB=(adb -s "$DEVICE"); fi
     "${ADB[@]}" shell am force-stop "$APP_ID"
+    # The app keeps this setting, so a run on the default port has to clear it.
     if [ "$METRO_PORT" != "8081" ]; then
       # React Native on an emulator reaches the host directly, so adb reverse has no effect.
       PREFS="<map><string name=\\\"debug_http_host\\\">10.0.2.2:${METRO_PORT}</string></map>"
       "${ADB[@]}" shell "run-as $APP_ID sh -c 'mkdir -p shared_prefs && echo \"$PREFS\" > shared_prefs/${APP_ID}_preferences.xml'"
+    else
+      "${ADB[@]}" shell "run-as $APP_ID rm -f shared_prefs/${APP_ID}_preferences.xml" 2>/dev/null || true
     fi
     "${ADB[@]}" logcat -c
     "${ADB[@]}" logcat -s ReactNativeJS:V > "$LOG_FILE" 2>&1 &
