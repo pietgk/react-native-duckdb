@@ -11,20 +11,25 @@ Releases go to GitHub, not npmjs.com. One tag produces both install paths from t
 
 2. Merge the version bump to `main` through a PR, and wait for CI.
 
-3. Create and push the tag. This repo also has upstream's tags if you fetch from `upstream`, so push only the new tag:
+3. Run the [Full checks workflow](https://github.com/pietgk/react-native-duckdb/actions/workflows/full-checks.yml) on `main`, and wait for it to pass. It is the only check on a clean machine:
+   ```bash
+   gh workflow run full-checks.yml --ref main
+   ```
+
+4. Create and push the tag. This repo also has upstream's tags if you fetch from `upstream`, so push only the new tag:
    ```bash
    git tag -a vX.Y.Z -m "vX.Y.Z"
    git push origin vX.Y.Z
    ```
 
-4. Approve the run in [Actions](https://github.com/pietgk/react-native-duckdb/actions/workflows/release.yml).
+5. Approve the run in [Actions](https://github.com/pietgk/react-native-duckdb/actions/workflows/release.yml).
 
-5. Check the [release](https://github.com/pietgk/react-native-duckdb/releases), then test what was published:
+6. Check the [release](https://github.com/pietgk/react-native-duckdb/releases), then test what was published:
    ```bash
    PACKAGE_SOURCE=https://github.com/pietgk/react-native-duckdb/releases/download/vX.Y.Z/pietgk-react-native-duckdb-X.Y.Z.tgz scripts/check-package-install.sh ios
    ```
 
-6. Update the version in the install URLs in `README.md`, `docs/bare-workflow.md` and `docs/expo.md`.
+7. Update the version in the install URLs in `README.md`, `docs/bare-workflow.md` and `docs/expo.md`.
 
 ## Environment
 
@@ -70,4 +75,4 @@ gh attestation verify pietgk-react-native-duckdb-X.Y.Z.tgz --repo pietgk/react-n
 - The workflow uses the built-in `GITHUB_TOKEN`, so there is no long-lived publish token to leak
 - The tag must match the package version
 - The tarball is attested, and the same tarball goes to both places
-- `scripts/check-package-install.sh` tests a packed tarball in a new app every night
+- `scripts/check-package-install.sh` tests a packed tarball in a new app before each release

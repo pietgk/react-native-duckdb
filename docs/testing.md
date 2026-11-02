@@ -3,11 +3,12 @@
 | Layer | What it covers | Command | Runs in |
 |---|---|---|---|
 | Typecheck and lint | Types and static checks | `bun run typecheck`, `bun run lint` | Every PR |
+| Package build | The compiled JavaScript and config plugin | `bun run package build` | Every PR |
 | Jest | Logic that needs no device: extension config, config plugin, transactions, errors | `bun run test` | Every PR |
-| In-app suite | The native library on a real device | `scripts/run-device-tests.sh ios` | Every PR, network tests nightly |
-| Maestro flows | Screens, error cards and LogBox entries | `maestro test example/.maestro` | Nightly |
-| Rebuild check | Rebuilding over the previous iOS output | `scripts/check-ios-rebuild.sh` | Nightly |
-| Package install | The packed tarball in a new app outside the repo | `scripts/check-package-install.sh ios` | Nightly |
+| In-app suite | The native library on a real device | `scripts/run-device-tests.sh ios` | Every PR, network tests after merging |
+| Maestro flows | Screens, error cards and LogBox entries | `maestro test example/.maestro` | After merging |
+| Rebuild check | Rebuilding over the previous iOS output | `scripts/check-ios-rebuild.sh` | After merging |
+| Package install | The packed tarball in a new app outside the repo | `scripts/check-package-install.sh ios` | After merging |
 
 Pull requests that only change `docs/` or Markdown files skip the iOS and Android jobs.
 
@@ -25,6 +26,19 @@ Each command runs the same build as CI, installs the app and runs the in-app sui
 - iOS uses the `iPhone 17` simulator. Set `SIMULATOR` to use another. Other booted simulators are left alone
 - Android builds for this machine, which is arm64-v8a on Apple silicon. CI tests x86_64, so a local run also covers the architecture real devices use
 - Stop Metro first. The script refuses to run if Metro is on port 8081, because it could be serving another checkout
+
+## After merging
+
+```bash
+scripts/post-merge-check.sh       # checks main
+scripts/post-merge-check.sh v2.1  # or another branch or tag
+```
+
+This runs the checks that are too slow for a PR on a fresh clone from GitHub, so uncommitted work and old build output cannot affect the result: a clean iOS build, the in-app suite with network tests, the Maestro flows, the rebuild check and the package install. It runs every check even if one fails, then lists the results. It deletes the clone if everything passed, and keeps it and the logs if something failed.
+
+It uses the `iPhone 17` simulator and needs Metro to be stopped.
+
+The [Full checks workflow](../.github/workflows/full-checks.yml) runs the same checks on a clean GitHub machine. There is no schedule, so start it by hand. [Run it before every release](../RELEASE.md).
 
 ## In-app suite
 

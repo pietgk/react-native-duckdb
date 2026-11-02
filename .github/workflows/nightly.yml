@@ -1,9 +1,6 @@
-name: Nightly
+name: Full checks
 
 on:
-  schedule:
-    # Off the hour, because GitHub delays scheduled runs most at the start of an hour.
-    - cron: '23 3 * * *'
   workflow_dispatch:
 
 jobs:
