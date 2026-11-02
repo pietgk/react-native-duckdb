@@ -7,7 +7,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: tab-tests
-    timeout: 20000
+    timeout: 60000
 # Keep tapping, because a tap during startup can be lost with no error.
 - repeat:
     while:

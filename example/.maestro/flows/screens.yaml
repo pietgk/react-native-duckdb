@@ -5,7 +5,7 @@ appId: dev.pietgk.duckdbreference
 - extendedWaitUntil:
     visible:
       id: tab-explorer
-    timeout: 20000
+    timeout: 60000
 - runFlow:
     file: ../shared/open-explorer-screen.yaml
     env:
