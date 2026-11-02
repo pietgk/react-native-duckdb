@@ -12,7 +12,7 @@ set -euo pipefail
 #                 down afterwards, so devices used by other projects are left alone
 #   AVD           Android emulator to boot (default: the first one listed)
 #   ANDROID_HOME  default: the Android Studio or Homebrew location
-#   MIN_PASSED    default 160, the same as CI
+#   MIN_PASSED    default 164, the same as CI
 
 PLATFORM="${1:?usage: ci-local.sh ios|android [autorun query]}"
 QUERY="${2:-network=0}"
@@ -21,7 +21,7 @@ REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SIMULATOR="${SIMULATOR:-iPhone 17}"
 EMULATOR_PORT=5580
 EMULATOR_PID=""
-export MIN_PASSED="${MIN_PASSED:-160}"
+export MIN_PASSED="${MIN_PASSED:-164}"
 
 cleanup() {
   if [ -n "$EMULATOR_PID" ]; then

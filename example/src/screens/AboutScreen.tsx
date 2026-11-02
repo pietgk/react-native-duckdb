@@ -60,13 +60,6 @@ const EXTENSIONS: { name: string; icon: IconName; color: string; desc: string }[
   { name: 'vss', icon: 'vector-combine', color: brand.purple, desc: 'Vector similarity search with HNSW indexes' },
 ]
 
-const LINKS: { label: string; icon: IconName; url: string }[] = [
-  { label: 'GitHub Repository', icon: 'github', url: REPO_URL },
-  { label: 'Releases', icon: 'tag-outline', url: RELEASES_URL },
-  { label: 'Report an Issue', icon: 'bug-outline', url: ISSUES_URL },
-  { label: 'DuckDB Documentation', icon: 'book-open-outline', url: 'https://duckdb.org/docs/' },
-]
-
 export function AboutScreen() {
   const { colors, isDark } = useTheme()
   const insets = useSafeAreaInsets()
@@ -101,10 +94,21 @@ export function AboutScreen() {
 
   const openLink = (url: string) => Linking.openURL(url)
 
+  const issueTitle = encodeURIComponent('DuckDB Reference - Feedback')
+  const issueBody = encodeURIComponent(
+    `\n\n---\nApp: DuckDB Reference v${PKG_VERSION}\nDuckDB: ${duckdbVersion ?? 'unknown'}\nRN: ${getRNVersion()}\nPlatform: ${Platform.OS} ${Platform.Version}\nArch: ${getIsNewArch() ? 'New' : 'Legacy'}\nBridge: Nitro Modules (JSI)`,
+  )
+  const links: { label: string; icon: IconName; url: string }[] = [
+    { label: 'GitHub Repository', icon: 'github', url: REPO_URL },
+    { label: 'Releases', icon: 'tag-outline', url: RELEASES_URL },
+    { label: 'Report an Issue', icon: 'bug-outline', url: `${ISSUES_URL}/new?title=${issueTitle}&body=${issueBody}` },
+    { label: 'DuckDB Documentation', icon: 'book-open-outline', url: 'https://duckdb.org/docs/' },
+  ]
+
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}>
+      style={[styles.container, { backgroundColor: colors.background, marginTop: insets.top }]}
+      contentContainerStyle={styles.content}>
 
       {/* Header */}
       <View style={styles.header}>
@@ -265,21 +269,23 @@ export function AboutScreen() {
 
       {/* Extensions */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Extensions in Example App</Text>
-      {EXTENSIONS.map((ext) => (
-        <View key={ext.name} style={[styles.extCard, { backgroundColor: colors.surface, borderLeftColor: ext.color }]}>
-          <View style={styles.extHeader}>
-            <MaterialCommunityIcons name={ext.icon} size={22} color={ext.color} />
-            <Text style={[styles.extName, { color: colors.text }]}>{ext.name}</Text>
+      <View style={styles.extList}>
+        {EXTENSIONS.map((ext) => (
+          <View key={ext.name} style={[styles.extCard, { backgroundColor: colors.surface, borderLeftColor: ext.color }]}>
+            <View style={styles.extHeader}>
+              <MaterialCommunityIcons name={ext.icon} size={22} color={ext.color} />
+              <Text style={[styles.extName, { color: colors.text }]}>{ext.name}</Text>
+            </View>
+            <Text style={[styles.extDesc, { color: colors.textSecondary }]}>{ext.desc}</Text>
           </View>
-          <Text style={[styles.extDesc, { color: colors.textSecondary }]}>{ext.desc}</Text>
-        </View>
-      ))}
+        ))}
+      </View>
 
       {/* Links */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Links</Text>
       <View style={[styles.card, { backgroundColor: colors.surface }]}>
-        {LINKS.map((link, i) => (
-          <React.Fragment key={link.url}>
+        {links.map((link, i) => (
+          <React.Fragment key={link.label}>
             {i > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
             <TouchableOpacity style={styles.linkRow} activeOpacity={0.6} onPress={() => openLink(link.url)}>
               <MaterialCommunityIcons name={link.icon} size={20} color={brand.blue} />
@@ -290,8 +296,8 @@ export function AboutScreen() {
         ))}
       </View>
 
-      {/* Author */}
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Author</Text>
+      {/* Original Author */}
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Original Author</Text>
       <View style={[styles.card, { backgroundColor: colors.surface }]}>
         <TouchableOpacity
           activeOpacity={0.7}
@@ -303,24 +309,6 @@ export function AboutScreen() {
               <Text style={[styles.authorHandle, { color: colors.textSecondary }]}>@pranshuchittora</Text>
             </View>
             <MaterialCommunityIcons name="github" size={20} color={colors.textSecondary} />
-          </View>
-        </TouchableOpacity>
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            const subject = encodeURIComponent('DuckDB Reference - Feedback')
-            const body = encodeURIComponent(
-              `\n\n---\nApp: DuckDB Reference v${PKG_VERSION}\nDuckDB: ${duckdbVersion ?? 'unknown'}\nRN: ${getRNVersion()}\nPlatform: ${Platform.OS} ${Platform.Version}\nArch: ${getIsNewArch() ? 'New' : 'Legacy'}\nBridge: Nitro Modules (JSI)`,
-            )
-            openLink(`mailto:pranshuchittora17@gmail.com?subject=${subject}&body=${body}`)
-          }}>
-          <View style={styles.authorRow}>
-            <MaterialCommunityIcons name="email-outline" size={22} color={brand.blue} style={{ marginLeft: 7, marginRight: 7 }} />
-            <View style={styles.authorInfo}>
-              <Text style={[styles.authorEmail, { color: brand.blue }]}>pranshuchittora17@gmail.com</Text>
-            </View>
-            <MaterialCommunityIcons name="open-in-new" size={16} color={colors.textSecondary} />
           </View>
         </TouchableOpacity>
       </View>
@@ -375,6 +363,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   archText: { flex: 1, fontSize: 13, fontWeight: '500' },
+  extList: { marginBottom: 10 },
   extCard: {
     borderLeftWidth: 3,
     borderRadius: 10,
@@ -390,7 +379,6 @@ const styles = StyleSheet.create({
   authorInfo: { flex: 1 },
   authorName: { fontSize: 16, fontWeight: '600' },
   authorHandle: { fontSize: 13, marginTop: 2 },
-  authorEmail: { fontSize: 14, fontWeight: '500' },
   footer: { alignItems: 'center', marginTop: 12, marginBottom: 8 },
   footerText: { fontSize: 12 },
 })

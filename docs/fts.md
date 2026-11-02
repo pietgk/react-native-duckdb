@@ -169,6 +169,8 @@ PRAGMA create_fts_index('docs', 'id', 'title', 'body', stemmer='english');
 
 **In-memory databases lose the index on close.** The FTS index is stored in DuckDB's schema. Closing an in-memory database discards it entirely.
 
+**Indexes built by DuckDB 1.4 need rebuilding.** They keep the 1.4 search macro, and searches with it can run out of memory on 2.0. See [Upgrading to DuckDB 2.0](upgrading-to-duckdb-2.md#rebuild-full-text-search-indexes).
+
 **Binary size impact.** Minimal -- FTS adds the Snowball stemmer library (~35 source files) with no external dependencies.
 
 ---

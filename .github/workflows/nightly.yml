@@ -35,7 +35,7 @@ jobs:
       - name: Run all tests, including network tests
         run: scripts/run-device-tests.sh ios network=1
         env:
-          MIN_PASSED: 170
+          MIN_PASSED: 174
       - name: Run Maestro flows
         run: maestro test --test-output-dir maestro-output example/.maestro
       - uses: actions/upload-artifact@v7
