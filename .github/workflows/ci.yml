@@ -21,6 +21,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run lint
       - run: bun run test
+      - run: bun run package build
 
   changes:
     runs-on: ubuntu-latest
