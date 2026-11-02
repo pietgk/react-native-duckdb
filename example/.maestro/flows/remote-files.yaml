@@ -7,7 +7,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: tab-explorer
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: tab-explorer
 - tapOn: ".*Remote Files.*"

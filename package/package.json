@@ -2,7 +2,7 @@
   "name": "@pietgk/react-native-duckdb",
   "version": "2.0.0",
   "description": "The analytical database for React Native — OLAP queries, full-text search, vector similarity search, and remote data on iOS and Android with native C++ performance",
-  "main": "./lib/module/index",
+  "main": "./lib/commonjs/index",
   "module": "./lib/module/index",
   "types": "./lib/typescript/module/index.d.ts",
   "source": "./src/index",

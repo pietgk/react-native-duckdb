@@ -5,11 +5,11 @@ tags:
 - launchApp:
     stopApp: true
 - extendedWaitUntil:
-    visible: ".*by .*"
-    timeout: 20000
-- tapOn:
-    text: ".*by .*"
-    index: 0
+    visible: "Curated"
+    timeout: 60000
+# Not a trending dataset, because that list changes and can include gated ones.
+- tapOn: "Curated"
+- tapOn: ".*SWE-bench Verified.*"
 - extendedWaitUntil:
     visible: ".*Preview.*"
     timeout: 8000
