@@ -21,6 +21,10 @@ REMOTE="$(git -C "$SCRIPT_DIR" remote get-url origin)"
 export SIMULATOR="${SIMULATOR:-iPhone 17}"
 export MIN_PASSED="${MIN_PASSED:-174}"
 WORK_DIR="${WORK_DIR:-$(mktemp -d)}"
+mkdir -p "$WORK_DIR"
+# macOS temporary paths go through a symlink, which pod install resolves and the
+# shell does not. A second spelling makes CMake recompile, and changes the library.
+WORK_DIR="$(cd "$WORK_DIR" && pwd -P)"
 CLONE_DIR="${WORK_DIR}/repo"
 LOG_DIR="${WORK_DIR}/logs"
 METRO_PID=""
